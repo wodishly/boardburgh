@@ -1,0 +1,15 @@
+- board
+  - fix logic for snapping
+  - make deckframe a canvas object
+  - make bricks spawn on deckframe and have two hover states
+  - brickshape drawing needs to know about the spin state on the board
+- screen translation
+  - zoom
+- meeples
+- other screens / devices
+- rotato
+  - rotato the rest
+  - beautification
+  - center of rotation needs to adjust with pan
+- crrf brick being weird
+

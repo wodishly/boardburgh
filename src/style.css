@@ -1,0 +1,131 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: light dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color: var(--fg);
+  background-color: var(--bg);
+
+  --field: lightgreen;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --fg: black;
+    --mg: white;
+    --bg: lightblue;
+    --dealDiv: lightgrey;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fg: white;
+    --mg: black;
+    --bg: midnightblue;
+    --dealDiv: grey;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body,
+html,
+div#game {
+  height: 100%;
+  overflow: hidden;
+}
+
+div#boardframe,
+div#deckframe {
+  position: absolute;
+}
+
+canvas#board {
+  margin: auto;
+}
+
+div#deckframe {
+  position: absolute;
+  background: var(--mg);
+  left: 1rem;
+  top: 2rem;
+  border: 2px solid var(--fg);
+  padding: 1rem;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: 0.2s;
+}
+
+span#lave {
+  text-align: center;
+  font-size: larger;
+}
+
+div#tally {
+  display: flex;
+  gap: 0.75rem;
+}
+
+div#tally ul {
+  list-style-type: none;
+}
+
+div#tally ul li {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+}
+
+div#tally ul li svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+div#tally ul li label {
+  margin-left: 0.5rem;
+  font-weight: bold;
+  font-size: larger;
+}
+
+div#deal {
+  border: 1px solid var(--fg);
+  background: var(--dealDiv);
+  width: 8rem;
+  height: 8rem;
+  margin: 1rem auto;
+}
+
+div#deckframe button {
+  background: var(--bg);
+  border: 2px solid var(--fg);
+  padding: 0.5rem;
+  font-size: larger;
+  border-radius: 0.5rem;
+  transition: 0.2s;
+}
+
+div#deckframe button:hover {
+  background: lightgrey;
+  box-shadow: 0px 0px 4px inset black;
+  cursor: pointer;
+}
+
+div#deckframe button:active {
+  background: grey;
+}
+
+svg {
+  border: 1.5px solid var(--fg);
+  border-radius: 0.5rem;
+  stroke-width: 0.075;
+}
