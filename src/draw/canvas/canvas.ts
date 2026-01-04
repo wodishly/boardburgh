@@ -1,15 +1,8 @@
 import { type GameDiv } from "../html/game-div";
 import { Settings, Stavewit } from "../../settings";
 import type { Brick } from "../../brick/brickstate";
-import { wayPlus, type Way, Waybook } from "../../brick/way";
-import {
-  zMinus,
-  zPlus,
-  zTimes,
-  toList,
-  type CanvasZ,
-  type WorldZ,
-} from "../../help/reckon";
+import { wayPlus, type Wayname, Waybook } from "../../brick/way";
+import { zMinus, zPlus, zTimes, toList, type Z } from "../../help/reckon";
 import type { BoardCanvas } from "../../board";
 import type { Eye } from "../eye";
 import { worldToScreen, type Brush } from "../draw";
@@ -67,7 +60,7 @@ export const borrowContextFont = (
   context: CanvasRenderingContext2D,
   brushwit: Partial<Brush>,
   staves: string,
-  { x, y }: CanvasZ,
+  { x, y }: Z<"canvas">,
   borrowwit?: Partial<Borrowwit>
 ): true => {
   const oldContext = context;
@@ -89,7 +82,7 @@ export const borrowContextFont = (
 export const drawFarthing = (
   div: GameDiv,
   brick: Brick,
-  way: Way,
+  way: Wayname,
   scale = 1
 ) => {
   const { start, end } = reckonEnds(brick, wayPlus(brick.head, way), scale);
@@ -116,7 +109,7 @@ export const drawFarthing = (
   }
 };
 
-export const reckonEnds = (brick: Brick, way: Way, scale = 1) => {
+export const reckonEnds = (brick: Brick, way: Wayname, scale = 1) => {
   const start = {
     x:
       brick.z.x +
@@ -148,7 +141,7 @@ export const reckonEnds = (brick: Brick, way: Way, scale = 1) => {
   return { start, end };
 };
 
-export const zoom = (z: CanvasZ, eye: Eye): CanvasZ => {
+export const zoom = (z: Z<"canvas">, eye: Eye): Z<"canvas"> => {
   return {
     ...zPlus(eye.pan, zTimes(zMinus(z, eye.pan), eye.zoom.scale)),
     kind: "canvas",
@@ -162,7 +155,7 @@ export const wipe = ({ context }: BoardCanvas) => {
 export const stave = (
   { eye, context }: BoardCanvas,
   staves: string,
-  z: WorldZ,
+  z: Z<"world">,
   brush: Partial<Brush> = {}
 ) => {
   borrowContextFont(context, brush, staves, worldToScreen(z, eye));

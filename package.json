@@ -11,10 +11,5 @@
   "devDependencies": {
     "typescript": "~5.9.3",
     "vite": "^7.2.4"
-  },
-  "dependencies": {
-    "@types/express": "^5.0.6",
-    "express": "^5.2.1",
-    "ts-node": "^10.9.2"
   }
 }

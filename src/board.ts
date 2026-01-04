@@ -7,7 +7,7 @@ import {
 import { Settings } from "./settings";
 import type { GameState } from "./state";
 import { makeEye, resize, type Eye } from "./draw/eye";
-import { toEdgeZ, wayPlus, type Way } from "./brick/way";
+import { toEdgeZ, wayPlus, type Wayname } from "./brick/way";
 import { getCanvas, setCursor, type Game } from "./game";
 import { stave, wipe, borrowContext } from "./draw/canvas/canvas";
 import { drawDebug } from "./draw/html/game-div";
@@ -15,7 +15,6 @@ import { z } from "./help/reckon";
 import { screenToWorld, worldToScreen, edgebrushOf } from "./draw/draw";
 import { drawBrickshape, spunAbout } from "./draw/draw-brickshape";
 import { toRectangle } from "./draw/shape";
-import type { Maybe } from "./help/type";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {
   context: CanvasRenderingContext2D;
@@ -90,7 +89,7 @@ export const doesWeave = (brick: Brick, other: Brick) => {
 /**
  * `wayTo(x, y) = z` iff `x` is `z` of `y`.
  */
-export const wayTo = (brick: Brick, other: Brick): Way => {
+export const wayTo = (brick: Brick, other: Brick): Wayname => {
   const a = Math.atan2(brick.z.y - other.z.y, brick.z.x - other.z.x);
   return a < (-3 * Math.PI) / 4
     ? "west"
@@ -103,7 +102,7 @@ export const wayTo = (brick: Brick, other: Brick): Way => {
     : "west";
 };
 
-export const updateBoard = (game: Game, now: number) => {
+export const updateBoard = (game: Game, _now: number) => {
   setCursor(game, "default");
   for (const thing of [...game.state.boardlist, game.state.chosen].reverse()) {
     if (isBrick(thing)) {

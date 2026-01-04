@@ -1,17 +1,21 @@
-import type { Flight } from "./type";
-
-type Tell<N extends number> = `${N}` extends `${number}.${number}` ? never : N;
-type Overnought<N extends number> = `${N}` extends `-${number}` ? never : N;
+import type { Flight } from "./rime";
+import type { Override } from "./type";
 
 export type ZKind = "world" | "canvas" | "svg";
 
-export type Z<K extends ZKind> = {
-  x: number;
-  y: number;
+export type Z<
+  K extends ZKind,
+  X extends number = number,
+  Y extends number = number
+> = {
+  x: X;
+  y: Y;
   kind: K;
 };
 
 export type Zful<K extends ZKind> = { z: Z<K> };
+
+export type WithSpaces<X extends number, Y extends number> = `${X} ${Y}`;
 
 export const toList = <K extends ZKind>({ x, y }: Z<K>): Flight<number, 2> => {
   return [x, y];
@@ -81,12 +85,13 @@ export const withCommas = <X extends number, Y extends number>(
   }` as `${X},${Y}`;
 
 export const withSpaces = <X extends number, Y extends number>(
-  { x, y }: Z<ZKind>,
+  z: Z<ZKind>,
   doRound = false
-) =>
-  `${doRound ? Math.round(x) : x} ${
-    doRound ? Math.round(y) : y
-  }` as `${X} ${Y}`;
+) => {
+  return `${doRound ? Math.round(z.x) : z.x} ${
+    doRound ? Math.round(z.y) : z.y
+  }` as Override<WithSpaces<X, Y>>;
+};
 
 export const roundTo = (n: number, sharpness = 0) => {
   return Math.round(n * 10 ** sharpness) / 10 ** sharpness;

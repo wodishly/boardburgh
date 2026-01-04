@@ -1,10 +1,19 @@
-import { toEdgeZ, Waybook, toCornerZ } from "../brick/way";
-import { toList, withSpaces, zLerp, zMinus, zTimes } from "../help/reckon";
-import { flight } from "../help/type";
+import type { Brickname } from "../brick/brickshape";
+import { toEdgeZ, Waybook, toNookZ } from "../brick/way";
+import {
+  toList,
+  withSpaces,
+  zLerp,
+  zMinus,
+  zTimes,
+  type ZKind,
+} from "../help/reckon";
+import { flight } from "../help/rime";
 import { Brushwit, Settings } from "../settings";
 import { borrowContext } from "./canvas/canvas";
 import { onesomeToWorld, worldToScreen } from "./draw";
 import { type BrickshapeDraw } from "./draw-brickshape";
+import type { Rectangle, Ring } from "./shape";
 import { toSvgBrush, makeSVGElement } from "./svg/svg";
 
 // todo: narrow to (0 | 1 | 2 | 3)[]
@@ -29,7 +38,7 @@ export const drawTwoRoadsNear: BrickshapeDraw = (
 
   const start = toEdgeZ(Waybook[roadEdges[0]]);
   const end = toEdgeZ(Waybook[roadEdges[1]]);
-  const corner = toCornerZ(Waybook[roadEdges[1]]);
+  const corner = toNookZ(Waybook[roadEdges[1]]);
 
   if (feather instanceof SVGSVGElement) {
     feather.append(
@@ -39,7 +48,7 @@ export const drawTwoRoadsNear: BrickshapeDraw = (
           `M${withSpaces(
             onesomeToWorld({
               ...zLerp(corner, start, 1 + roadHalfwidth),
-              kind: "one",
+              kind: "svg",
             })
           )}` +
           ` ` +
@@ -48,14 +57,14 @@ export const drawTwoRoadsNear: BrickshapeDraw = (
           )} 90 0 1 ${withSpaces(
             onesomeToWorld({
               ...zLerp(corner, end, 1 + roadHalfwidth),
-              kind: "one",
+              kind: "svg",
             })
           )}` +
           ` ` +
           `L${withSpaces(
             onesomeToWorld({
               ...zLerp(corner, end, 1 - roadHalfwidth),
-              kind: "one",
+              kind: "svg",
             })
           )}` +
           ` ` +
@@ -64,7 +73,7 @@ export const drawTwoRoadsNear: BrickshapeDraw = (
           )} 90 0 0 ${withSpaces(
             onesomeToWorld({
               ...zLerp(corner, start, 1 - roadHalfwidth),
-              kind: "one",
+              kind: "svg",
             })
           )}` +
           ` ` +

@@ -1,4 +1,4 @@
-import { type Brickname, type Brickshape, isBrickshape } from "./bricktype";
+import { type Brickshape, isBrickshape } from "./brickshape";
 import { mod, zMinus, zTimes, type Z, type Zful } from "../help/reckon";
 import {
   isObject,
@@ -7,11 +7,12 @@ import {
   type Maybe,
   type Wayward,
 } from "../help/type";
-import { Waybook, type Way } from "./way";
+import { Waybook, type Wayname } from "./way";
 import { isMouseInBrick, wayTo, doesWeave } from "../board";
 import { getEye, type Game } from "../game";
 import { worldToScreen, screenToWorld } from "../draw/draw";
 import { Settings } from "../settings";
+import type { Brickname } from "./brickname";
 
 export type BoardId = number;
 
@@ -28,7 +29,7 @@ export type Brick<
 > = Brickshape<N> &
   Zful<"world"> & {
     boardId: BoardId;
-    head: Way;
+    head: Wayname;
     neighbors: S extends Cold
       ? Wayward<Brick<Brickname, Brickstate>>
       : undefined;
@@ -42,7 +43,7 @@ type BrickChoose<S extends Brickstate> = S extends Chosen
       startZ: Z<"canvas">;
       clickZ: Z<"canvas">;
       spin: number;
-      head: Way;
+      head: Wayname;
     }
   : undefined;
 

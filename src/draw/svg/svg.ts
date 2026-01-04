@@ -1,13 +1,38 @@
-import type { Brickname } from "../../brick/bricktype";
-import { mod, type Z } from "../../help/reckon";
+import {
+  hasChurch,
+  hasCity,
+  hasCurvedRoad,
+  hasRoad,
+  hasShield,
+  hasTown,
+  type Brickname,
+} from "../../brick/brickname";
+import { edgetellsOf } from "../../brick/edge";
+import { Waybook, toNookZ, toEdgeZ, wayNext } from "../../brick/way";
+import {
+  withCommas,
+  withSpaces,
+  zLerp,
+  zTimes,
+  type WithSpaces,
+  type ZKind,
+} from "../../help/reckon";
+import { swap } from "../../help/type";
 import { Brushwit, Settings } from "../../settings";
-import type { Brush } from "../draw";
-import { drawBrickshape, reckonShield, roadFingers } from "../draw-brickshape";
+import { type Brush } from "../draw";
+import {
+  reckonStraightRoad,
+  reckonShield,
+  type Roadnooks,
+  reckonTown,
+  reckonChurch,
+} from "../draw-brickshape";
 import {
   toRectangle,
   type Fournook,
+  type Nookful,
   type Rectangle,
-  type RoundedRectangle,
+  type Ring,
 } from "../shape";
 
 type SvgBrushRimeKey =
@@ -23,25 +48,40 @@ export type SvgBrush = {
   [K in keyof CSSStyleDeclaration]: K extends SvgBrushRimeKey ? number : string;
 };
 
+// todo
 export const toSvgBrush = (brush: Partial<Brush>): Partial<SvgBrush> => {
   return Object.assign(
     {},
     "fillColor" in brush ? { fill: brush.fillColor } : {},
     "strokeColor" in brush ? { stroke: brush.strokeColor } : {},
-    {
-      strokeWidth: brush.strokeWidth,
-      textAlign: brush.textAlign,
-      textBaseline: brush.textBaseline,
-    }
+    "strokeWidth" in brush ? { strokeWidth: brush.strokeWidth } : {},
+    "textAlign" in brush ? { textAlign: brush.textAlign } : {},
+    "textBaseline" in brush ? { textBaseline: brush.textBaseline } : {}
   );
 };
+
+type D<
+  X0 extends number,
+  Y0 extends number,
+  X1 extends number,
+  Y1 extends number,
+  B extends boolean
+> = `${M<X0, Y0>} ${L<X1, Y1>} ${Z<B>}`;
+type M<X extends number = number, Y extends number = number> = `M${WithSpaces<
+  X,
+  Y
+>}`;
+type L<X extends number = number, Y extends number = number> = `L${WithSpaces<
+  X,
+  Y
+>}`;
+type Z<B extends boolean = false> = B extends true ? `Z` : ``;
 
 export const makeSVGToken = (brickname: Brickname) => {
   const svg = makeSVGElement("svg");
   svg.setAttribute("id", `token-${brickname}`);
   svg.setAttribute("viewBox", "-1 -1 2 2");
-  drawBrickshape(
-    // drawSVGBrickshape(
+  drawSVGBrickshape(
     svg,
     {
       navel: { x: 0, y: 0, kind: "world" },
@@ -62,63 +102,203 @@ export const svgFrame = (): Rectangle<"svg"> => {
   };
 };
 
-export const hasCurvedRoad = (brickname: Brickname) => {
-  const roadFingers = [];
-  for (let i = 0; i < brickname.length; i++) {
-    if (brickname[i] === "r") roadFingers.push(i);
-  }
-  return (
-    roadFingers.length === 2 && mod(roadFingers[0] - roadFingers[1], 4) === 3
+export const drawSVGBrickshape = (
+  svg: SVGSVGElement,
+  { navel, greatness }: Fournook<"world">,
+  brickname: Brickname
+) => {
+  svg.append(
+    makeSVGElement("rect", {
+      ...toSvgBrush(Brushwit.field),
+      ...toRectangle({ navel, greatness }),
+    })
   );
+
+  if (hasRoad(brickname)) {
+    if (hasCurvedRoad(brickname)) {
+      const almostEdgetells = edgetellsOf(brickname, "r");
+      const edgetells =
+        almostEdgetells[0] === 0 && almostEdgetells[1] === 3
+          ? swap(almostEdgetells)
+          : almostEdgetells;
+      const nook = toNookZ(Waybook[edgetells[1]]);
+      const start = toEdgeZ(Waybook[edgetells[0]]);
+      const end = toEdgeZ(Waybook[edgetells[1]]);
+
+      svg.append(
+        makeSVGElement("path", {
+          ...toSvgBrush(Brushwit.road),
+          d:
+            `M${withSpaces({
+              ...zLerp(nook, start, 1 + Settings.draw.roadHalfwidth),
+              kind: "svg",
+            })}` +
+            ` ` +
+            `A${withSpaces(
+              zTimes(greatness, (1 + Settings.draw.roadHalfwidth) / 2)
+            )} 90 0 1 ${withSpaces({
+              ...zLerp(nook, end, 1 + Settings.draw.roadHalfwidth),
+              kind: "svg",
+            })}` +
+            ` ` +
+            `L${withSpaces({
+              ...zLerp(nook, end, 1 - Settings.draw.roadHalfwidth),
+              kind: "svg",
+            })}` +
+            ` ` +
+            `A${withSpaces(
+              zTimes(greatness, (1 - Settings.draw.roadHalfwidth) / 2)
+            )} 90 0 0 ${withSpaces({
+              ...zLerp(nook, start, 1 - Settings.draw.roadHalfwidth),
+              kind: "svg",
+            })}` +
+            ` ` +
+            `Z`,
+        })
+      );
+    } else {
+      svg.append(
+        makeSVGElement("path", {
+          ...toSvgBrush(Brushwit.road),
+          ...nookfulToSVGPath(reckonStraightRoad(brickname, svgFrame())),
+        })
+      );
+    }
+
+    if (hasTown(brickname)) {
+      svg.append(
+        makeSVGElement("circle", {
+          ...toSvgBrush(Brushwit.town),
+          ...ringToSVGCircle(reckonTown(brickname, svgFrame())),
+        })
+      );
+    }
+  }
+
+  if (hasCity(brickname)) {
+    const edgetells = edgetellsOf(brickname, "c");
+    switch (edgetells.length) {
+      case 4:
+        svg.append(
+          makeSVGElement("rect", {
+            ...toSvgBrush(Brushwit.city),
+            ...toRectangle({ navel, greatness }),
+          })
+        );
+        break;
+      case 3:
+        const svgPath = [];
+        for (let i = 0; i < 4; i++) {
+          const nook = toNookZ(wayNext(Waybook[i]));
+          if (edgetells[0] === i || edgetells[1] === i || edgetells[2] === i) {
+            svgPath.push(`L${withSpaces(nook)}`);
+          } else {
+            svgPath.push(
+              `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nook)}`
+            );
+          }
+        }
+        svgPath.push("Z");
+        svg.append(
+          makeSVGElement("path", {
+            ...toSvgBrush(Brushwit.city),
+            d: svgPath.join(" ").replace("L", "M"),
+          })
+        );
+        break;
+      case 2:
+        if ((edgetells[0] - edgetells[1]) % 2) {
+          svg.append(
+            makeSVGElement("path", {
+              ...toSvgBrush(Brushwit.city),
+              d:
+                `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
+                ` ` +
+                `L${withSpaces(toNookZ(wayNext(Waybook[edgetells[0]])))}` +
+                ` ` +
+                `L${withSpaces(toNookZ(Waybook[edgetells[1]]))}` +
+                ` ` +
+                `L${withSpaces(toNookZ(wayNext(Waybook[edgetells[1]])))}` +
+                ` ` +
+                `Z`,
+            })
+          );
+        } else {
+          const svgPath = [];
+          for (let i = 0; i < 4; i++) {
+            const nook = toNookZ(wayNext(Waybook[i]));
+            if (edgetells[0] === i || edgetells[1] === i) {
+              svgPath.push(`L${withSpaces(nook)}`);
+            } else {
+              svgPath.push(
+                `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nook)}`
+              );
+            }
+          }
+          svgPath.push("Z");
+          svg.append(
+            makeSVGElement("path", {
+              ...toSvgBrush(Brushwit.city),
+              d: svgPath.join(" ").replace("L", "M"),
+            })
+          );
+        }
+        break;
+      case 1:
+        svg.append(
+          makeSVGElement("path", {
+            ...toSvgBrush(Brushwit.city),
+            d:
+              `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
+              ` ` +
+              `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withCommas(
+                toNookZ(wayNext(Waybook[edgetells[0]]))
+              )}` +
+              ` ` +
+              `Z`,
+          })
+        );
+        break;
+      default:
+        throw new Error("bad city");
+    }
+  }
+
+  if (hasChurch(brickname)) {
+    svg.append(
+      makeSVGElement("circle", {
+        ...toSvgBrush(Brushwit.church),
+        ...ringToSVGCircle(reckonChurch(brickname, svgFrame())),
+      })
+    );
+  }
+
+  if (hasShield(brickname)) {
+    svg.append(
+      makeSVGElement("rect", {
+        ...toSvgBrush(Brushwit.shield),
+        ...reckonShield(brickname, svgFrame()),
+      })
+    );
+  }
 };
 
-// export const drawSVGBrickshape = (
-//   svg: SVGSVGElement,
-//   { navel, greatness }: Fournook<"world">,
-//   brickname: Brickname
-// ) => {
-//   svg.append(
-//     makeSVGElement("rect", {
-//       ...toSvgBrush(Brushwit.field),
-//       ...toRectangle({ navel, greatness }),
-//     })
-//   );
-//   if (hasCurvedRoad(brickname)) {
-//     // todo
-//   } else {
-//     svg.append(makeSVGElement("path", { ...toSvgBrush(Brushwit.road), ...reckonRoad(brickname, svgFrame()) }));
-//   }
-//
-//   for (const i of roadEdges) {
-//     svg.append(
-//       makeSVGElement("rect", {
-//         ...toSvgBrush(Brushwit.road),
-//         x: navel.x - (i === 2 ? greatness.x / 2 : roadHalfwidth),
-//         y: navel.y - (i === 1 ? greatness.y / 2 : roadHalfwidth),
-//         width: roadHalfwidth + (i % 2 ? roadHalfwidth : greatness.x / 2),
-//         height: roadHalfwidth + (i % 2 ? greatness.y / 2 : roadHalfwidth),
-//       })
-//     );
-//   }
-//
-//   switch (roadEdges.length) {
-//     case 4:
-//       svg.append(
-//         makeSVGElement("rect", {
-//           ...toSvgBrush(Brushwit.road),
-//           ...toRectangle({ navel, greatness }),
-//         })
-//       );
-//       break;
-//   }
-//
-//   svg.append(
-//     makeSVGElement("rect", {
-//       ...toSvgBrush(Brushwit.shield),
-//       ...reckonShield(brickname, svgFrame()),
-//     })
-//   );
-// };
+const ringToSVGCircle = <K extends ZKind>(ring: Ring<K>) => {
+  return {
+    cx: ring.navel.x,
+    cy: ring.navel.y,
+    r: ring.halfwidth,
+  };
+};
+
+const nookfulToSVGPath = <K extends ZKind>(nookful: Nookful<K, Roadnooks>) => {
+  const svgPath = [];
+  for (const nook of nookful) {
+    svgPath.push(`L${withSpaces(nook)}`);
+  }
+  svgPath.push("Z");
+  return { d: svgPath.join(" ").replace("L", "M") };
+};
 
 export const makeSVGElement = <K extends keyof SVGElementTagNameMap>(
   tagName: K,

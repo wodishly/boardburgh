@@ -1,23 +1,22 @@
 import type { BoardCanvas } from "../board";
-import { Edgebook, hasShield, type Brickname } from "../brick/bricktype";
 import {
-  toCornerZ,
+  hasShield,
+  type Brickname,
+  type Church,
+  type Shield,
+  type Town,
+} from "../brick/brickname";
+import {
+  toNookZ,
   toEdgeZ,
   Waybook,
   wayNext,
   wayPlus,
-  type Way,
+  type Wayname,
 } from "../brick/way";
-import {
-  withSpaces,
-  withCommas,
-  toList,
-  zTimes,
-  zPlus,
-  type Z,
-  mod,
-} from "../help/reckon";
-import { flight, only, type Override, type Maybe } from "../help/type";
+import { toList, zTimes, zPlus, type Z, z, type ZKind } from "../help/reckon";
+import { flight, type Plus } from "../help/rime";
+import { only, type Override, type Maybe, sameshift } from "../help/type";
 import { Brushwit, Settings } from "../settings";
 import { borrowContext } from "./canvas/canvas";
 import { worldToScreen, type Feather } from "./draw";
@@ -33,10 +32,11 @@ import {
 import {
   toRectangle,
   type Fournook,
+  type Nookful,
   type Rectangle,
+  type Ring,
   type RoundedRectangle,
 } from "./shape";
-import { makeSVGElement, toSvgBrush } from "./svg/svg";
 
 export type Featherkind<F extends Feather> = F extends SVGSVGElement
   ? "svg"
@@ -48,9 +48,11 @@ export type BrickshapeDraw = (
   feather: Feather,
   fournook: Fournook<"world">,
   brickname: Brickname,
-  head?: Maybe<Way>,
+  head?: Maybe<Wayname>,
   winkle?: number
 ) => void;
+
+export type Roadnooks = Plus<1 | 3, Plus<1 | 3, Plus<1 | 3, 1 | 3>>>;
 
 export const featherkind = <F extends Feather>(feather: F): Featherkind<F> => {
   if (feather instanceof SVGSVGElement) {
@@ -73,11 +75,7 @@ export const drawBrickshape: BrickshapeDraw = (
   const k = featherkind(feather);
   switch (k) {
     case "svg":
-      drawField(feather, nooks, brickname, head, winkle);
-      drawRoads(feather, nooks, brickname, head, winkle);
-      drawCity(feather, nooks, brickname, head, winkle);
-      drawShield(feather, nooks, brickname, head, winkle);
-      return;
+      throw new Error("uh oh");
     case "canvas":
       drawField(feather, nooks, brickname, head, winkle);
       drawRoads(feather, nooks, brickname, head, winkle);
@@ -91,18 +89,12 @@ export const drawBrickshape: BrickshapeDraw = (
 export const drawField: BrickshapeDraw = (
   feather,
   { navel, greatness },
-  brickname,
-  head,
+  _brickname,
+  _head,
   winkle
 ) => {
   if (feather instanceof SVGSVGElement) {
-    feather.append(
-      makeSVGElement("rect", {
-        ...toSvgBrush(Brushwit.field),
-        ...toRectangle({ navel, greatness }),
-      })
-    );
-    return true;
+    throw new Error("uh oh");
   } else {
     const rectangle = toRectangle({
       navel: worldToScreen(navel, feather.eye),
@@ -145,7 +137,7 @@ export const spunAbout = (
 
 export const cityFingers = (
   brickname: Brickname,
-  head: Way = "east"
+  head: Wayname = "east"
 ): number[] => {
   return flight(4)
     .filter((i) => brickname[i] === "c")
@@ -154,7 +146,7 @@ export const cityFingers = (
 
 export const roadFingers = (
   brickname: Brickname,
-  head: Way = "east"
+  head: Wayname = "east"
 ): number[] => {
   return flight(4)
     .filter((i) => brickname[i] === "r")
@@ -204,16 +196,7 @@ export const drawCity: BrickshapeDraw = (
     return true;
   } else if (cityEdges.length === 4) {
     if (feather instanceof SVGSVGElement) {
-      feather.append(
-        makeSVGElement("rect", {
-          ...toSvgBrush(Brushwit.city),
-          x: navel.x - greatness.x / 2,
-          y: navel.y - greatness.y / 2,
-          width: greatness.x,
-          height: greatness.y,
-        })
-      );
-      return true;
+      throw new Error("uh oh");
     } else {
       const rectangle = toRectangle({
         navel: worldToScreen(navel, feather.eye),
@@ -234,61 +217,21 @@ export const drawCity: BrickshapeDraw = (
     (cityEdges.length === 2 && (cityEdges[0] - cityEdges[1]) % 4 === -2)
   ) {
     if (feather instanceof SVGSVGElement) {
-      const city = makeSVGElement("path", toSvgBrush(Brushwit.city));
-      let d = [];
-      d.push(`M${withCommas(toCornerZ("east"))}`);
-      for (let i = 0; i < 4; i++) {
-        const thisWay = Waybook[i];
-        const nextWay = wayNext(thisWay);
-        const nextCorner = toCornerZ(nextWay);
-        if (!cityEdges.includes(i)) {
-          d.push(
-            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nextCorner)}`
-          );
-        } else {
-          d.push(`L${nextCorner.x} ${nextCorner.y}`);
-        }
-      }
-      d.push("Z");
-      city.setAttribute("d", d.join(" "));
-      feather.append(city);
-      return true;
+      throw new Error("uh oh");
     } else {
       return true;
     }
   } else if (cityEdges.length === 2) {
     // todo: the special tiles
     if (feather instanceof SVGSVGElement) {
-      const [start, end] =
-        cityEdges[0] === 0 && cityEdges[1] === 3 ? [3, 0] : cityEdges;
-
-      const city = makeSVGElement("polygon", toSvgBrush(Brushwit.city));
-      city.setAttribute(
-        "points",
-        [start, end, end + 1]
-          .map((i) => withCommas(toCornerZ(Waybook[i % 4])))
-          .join(" ")
-      );
-      feather.append(city);
-      return true;
+      throw new Error("uh oh");
     } else {
       return true;
     }
   } else if (cityEdges.length === 1) {
     const way = only(cityEdges);
     if (feather instanceof SVGSVGElement) {
-      feather.append(
-        makeSVGElement("path", {
-          ...toSvgBrush(Brushwit.city),
-          d:
-            `M${withSpaces(toCornerZ(Waybook[way]))}` +
-            ` ` +
-            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withCommas(
-              toCornerZ(wayNext(Waybook[way]))
-            )}`,
-        })
-      );
-      return true;
+      throw new Error("uh oh");
     } else {
       borrowContext(feather.context, Brushwit.city, (context) => {
         context.arc(
@@ -317,36 +260,107 @@ export const drawCity: BrickshapeDraw = (
   }
 };
 
-// export const reckonRoad = <K extends "canvas" | "svg">(
-//   brickname: Brickname,
-//   bricknooks: Rectangle<K>,
-//   head: Way = "east"
-// ) => {
-//   const allNooks = Waybook.map((way, i) =>
-//     zTimes(toCornerZ(wayPlus(way, head)), Settings.draw.roadHalfwidth)
-//   ).flat();
-//   const d = ["d"];
-//   for (let i = 0; i < brickname.length; i++) {
-//     d.push(`L${withSpaces(allNooks[i])}`);
-//     if (brickname[i] === "r") {
-//       d.push(`L${withSpaces(allNooks[i])}`);
-//     }
-//     d.push(`L${withSpaces(allNooks[mod(i + 1, 4)])}`);
-//   }
-//   return d.join(" ").replace("L", "M");
-// };
+export const reckonStraightRoad = <K extends "canvas" | "svg">(
+  brickname: Brickname,
+  bricknooks: Rectangle<K>,
+  head: Wayname = "east"
+): Nookful<K, Roadnooks> => {
+  const allNooks = sameshift([...Waybook], (way) => {
+    const spunThisWay = wayPlus(way, head);
+    const thisInnerNook = zTimes(
+      toNookZ(spunThisWay),
+      Settings.draw.roadHalfwidth
+    );
+    const nextInnerNook = zTimes(
+      toNookZ(wayNext(spunThisWay)),
+      Settings.draw.roadHalfwidth
+    );
+    return [
+      thisInnerNook,
+      z(
+        spunThisWay === "east" || spunThisWay === "west"
+          ? toEdgeZ(spunThisWay).x
+          : thisInnerNook.x,
+        spunThisWay === "north" || spunThisWay === "south"
+          ? toEdgeZ(spunThisWay).y
+          : thisInnerNook.y,
+        "svg"
+      ),
+      z(
+        spunThisWay === "east" || spunThisWay === "west"
+          ? toEdgeZ(spunThisWay).x
+          : nextInnerNook.x,
+        spunThisWay === "north" || spunThisWay === "south"
+          ? toEdgeZ(spunThisWay).y
+          : nextInnerNook.y,
+        "svg"
+      ),
+    ];
+  }).flat();
+
+  const trueNooks = [];
+
+  for (let i = 0; i < Waybook.length; i++) {
+    trueNooks.push({
+      x: bricknooks.x + bricknooks.width / 2 + allNooks[3 * i].x,
+      y: bricknooks.y + bricknooks.height / 2 + allNooks[3 * i].y,
+      kind: bricknooks.kind,
+    });
+    if (brickname[i] === "r") {
+      trueNooks.push({
+        x: bricknooks.x + bricknooks.width / 2 + allNooks[3 * i + 1].x,
+        y: bricknooks.y + bricknooks.height / 2 + allNooks[3 * i + 1].y,
+        kind: bricknooks.kind,
+      });
+      trueNooks.push({
+        x: bricknooks.x + bricknooks.width / 2 + allNooks[3 * i + 2].x,
+        y: bricknooks.y + bricknooks.height / 2 + allNooks[3 * i + 2].y,
+        kind: bricknooks.kind,
+      });
+    }
+  }
+  return trueNooks as Override<Nookful<K, Roadnooks>>;
+};
+
+export const reckonTown = <K extends ZKind>(
+  brickname: Town,
+  bricknooks: Rectangle<K>
+): Ring<K> => {
+  return {
+    navel: {
+      x: bricknooks.x + bricknooks.width / 2,
+      y: bricknooks.y + bricknooks.height / 2,
+      kind: bricknooks.kind,
+    },
+    halfwidth: (bricknooks.width + bricknooks.height) / 2 / 2 / 4,
+  };
+};
+
+export const reckonChurch = <K extends ZKind>(
+  brickname: Church,
+  bricknooks: Rectangle<K>
+): Ring<K> => {
+  return {
+    navel: {
+      x: bricknooks.x + bricknooks.width / 2,
+      y: bricknooks.y + bricknooks.height / 2,
+      kind: bricknooks.kind,
+    },
+    halfwidth: (bricknooks.width + bricknooks.height) / 2 / 2 / 2,
+  };
+};
 
 export const reckonShield = <K extends "canvas" | "svg">(
-  brickname: Brickname,
+  brickname: Shield,
   bricknooks: Rectangle<K>
 ): RoundedRectangle<K> => {
   const { x, y, width, height } = bricknooks;
-  const nudge =
-    0.5 *
-    +(brickname[0] === "c" && brickname[1] !== "c" && brickname[2] === "c");
   return {
-    x: x + (width * 5) / 8,
-    y: y + (height * 1) / 8 + nudge,
+    x: x + (width * 11) / 16,
+    y:
+      brickname[0] === "c" && brickname[1] !== "c" && brickname[2] === "c"
+        ? y + (height * 3) / 8
+        : y + (height * 1) / 16,
     kind: bricknooks.kind,
     width: width / 4,
     height: height / 4,
@@ -360,7 +374,7 @@ export const drawShield: BrickshapeDraw = (
   feather,
   { navel, greatness },
   brickname,
-  head,
+  _head,
   winkle
 ) => {
   if (!hasShield(brickname)) return true;
@@ -384,13 +398,7 @@ export const drawShield: BrickshapeDraw = (
   };
 
   if (feather instanceof SVGSVGElement) {
-    feather.append(
-      makeSVGElement("rect", {
-        ...toSvgBrush(Brushwit.shield),
-        ...roundedRectangle,
-      })
-    );
-    return true;
+    throw new Error("uh oh");
   } else {
     borrowContext(feather.context, Brushwit.shield, (context) => {
       spunAbout(

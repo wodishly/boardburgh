@@ -1,6 +1,6 @@
 import type { BoardCanvas } from "../board";
 import type { Brick } from "../brick/brickstate";
-import type { Zful, Z, SvgZ, CanvasZ, WorldZ } from "../help/reckon";
+import type { Z } from "../help/reckon";
 import type { Eye } from "./eye";
 import { fg } from "./html/game-div";
 
@@ -39,7 +39,11 @@ export const edgebrushOf = (brick: Brick): Partial<Brush> => {
   brick.state satisfies never;
 };
 
-export const worldToScreen = (z: WorldZ, eye: Eye, doPan = true): CanvasZ => {
+export const worldToScreen = (
+  z: Z<"world">,
+  eye: Eye,
+  doPan = true
+): Z<"canvas"> => {
   return {
     x: eye.zoom.scale * (z.x + (doPan ? eye.pan.x : 0)),
     y: eye.zoom.scale * (z.y + (doPan ? eye.pan.y : 0)),
@@ -47,7 +51,11 @@ export const worldToScreen = (z: WorldZ, eye: Eye, doPan = true): CanvasZ => {
   };
 };
 
-export const screenToWorld = (z: CanvasZ, eye: Eye, doPan = true): WorldZ => {
+export const screenToWorld = (
+  z: Z<"canvas">,
+  eye: Eye,
+  doPan = true
+): Z<"world"> => {
   return {
     x: (z.x - (doPan ? eye.pan.x : 0)) / eye.zoom.scale,
     y: (z.y - (doPan ? eye.pan.y : 0)) / eye.zoom.scale,
@@ -55,6 +63,6 @@ export const screenToWorld = (z: CanvasZ, eye: Eye, doPan = true): WorldZ => {
   };
 };
 
-export const onesomeToWorld = ({ x, y }: SvgZ): WorldZ => {
+export const onesomeToWorld = ({ x, y }: Z<"svg">): Z<"world"> => {
   return { x, y, kind: "world" as const };
 };

@@ -15,7 +15,7 @@ export type Knob<N extends Knobname = Knobname> = N extends any
   : never;
 
 export const bakeKnob = <N extends Knobname>(
-  gameState: GameState,
+  _gameState: GameState,
   knobname: N,
   callback: (e: PointerEvent) => void = () => {}
 ) => {

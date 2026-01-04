@@ -1,4 +1,4 @@
-import { isBrickname } from "../../brick/bricktype";
+import { isBrickname } from "../../brick/brickname";
 import { dealBrick, runTally, type Tally } from "../../brick/deck";
 import type { GameState } from "../../state";
 import { type Knobful, bakeKnob } from "../knob";
