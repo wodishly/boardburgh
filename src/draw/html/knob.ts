@@ -2,7 +2,7 @@ import { makeWithId, type ElementWithId } from "./type";
 import type { Override } from "../../help/type";
 import type { GameState } from "../../state";
 
-export type Knobname = "make" | "break";
+export type Knobname = "deal" | "lock";
 
 export type KnobId<I extends Knobname = Knobname> = `knob-${I}`;
 
@@ -14,7 +14,7 @@ export type Knob<N extends Knobname = Knobname> = N extends any
   ? ElementWithId<"button", KnobId<N>>
   : never;
 
-export const bakeKnob = <N extends Knobname>(
+export const makeKnob = <N extends Knobname>(
   _gameState: GameState,
   knobname: N,
   callback: (e: PointerEvent) => void = () => {}

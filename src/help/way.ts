@@ -123,3 +123,10 @@ export const toFarthing = (way: Wayname, kind: ZKind) => {
     ((kind === "canvas" ? 3 - waytellOf(way) : waytellOf(way)) * Math.PI) / 2
   );
 };
+
+const fromFarthing = (winkle: number): Waytell => {
+  const tell = winkle / (Math.PI / 2);
+  if (tell === 0 || tell === 1 || tell === 2 || tell === 3) {
+    return tell;
+  } else throw new Error(`bad tell ${tell}`);
+};

@@ -59,7 +59,7 @@ export const dealBrick = (gameState: GameState, _now: number) => {
     z: { x: 600, y: 200, kind: "world" as const },
     isSnapped: false,
     neighbors: undefined,
-    spin: (Math.PI / 2) * Math.round(4 * Math.random()),
+    farthings: Math.floor(4 * Math.random()),
     state: "live" as const,
     choose: undefined,
   });

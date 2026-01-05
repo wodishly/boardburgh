@@ -12,7 +12,7 @@ import {
 } from "./draw/html/type";
 import { Settings } from "./settings";
 import { makeEye, resize, type Eye } from "./draw/eye";
-import { isWaytell, waynameOf, wayPlus } from "./help/way";
+import { isWaytell, waynameOf, wayPlus, waytellOf } from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
   drawCityToCanvas,
@@ -27,7 +27,7 @@ import { drawDebug, drawDebugOrd, fg } from "./draw/html/game-div";
 import { withCommas, z } from "./help/reckon";
 import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
-import { type Maybe } from "./help/type";
+import { ly, type Maybe } from "./help/type";
 import { isChosen } from "./state";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {
@@ -70,33 +70,12 @@ export const isMouseInBrick = (game: Game, brick: Brick) => {
 };
 
 export const doesWeave = (brick: Brick, other: Brick) => {
-  const way = wayTo(brick, other);
-  if (!isWaytell(brick.spin) || !isWaytell(other.spin)) {
-    return false;
-  }
-  switch (way) {
-    case "east":
-      return (
-        brick.edges[wayPlus(waynameOf(brick.spin), "west")] ===
-        other.edges[wayPlus(waynameOf(other.spin), "east")]
-      );
-    case "north":
-      return (
-        brick.edges[wayPlus(waynameOf(brick.spin), "south")] ===
-        other.edges[wayPlus(waynameOf(other.spin), "north")]
-      );
-    case "west":
-      return (
-        brick.edges[wayPlus(waynameOf(brick.spin), "east")] ===
-        other.edges[wayPlus(waynameOf(other.spin), "west")]
-      );
-    case "south":
-      return (
-        brick.edges[wayPlus(waynameOf(brick.spin), "north")] ===
-        other.edges[wayPlus(waynameOf(other.spin), "south")]
-      );
-  }
-  way satisfies never;
+  return (
+    isWaytell(brick.farthings) &&
+    isWaytell(other.farthings) &&
+    brick.edges[wayPlus(wayTo(other, brick), waynameOf(brick.farthings))] ===
+      other.edges[wayPlus(wayTo(brick, other), waynameOf(other.farthings))]
+  );
 };
 
 export const updateBoard = (game: Game, _now: number) => {
@@ -149,7 +128,7 @@ const drawBrick = (game: Game, brick: Brick) => {
       brickframe.y + brickframe.height / 2,
       "canvas"
     ),
-    winkle: brick.spin,
+    winkle: (Math.PI / 2) * brick.farthings,
   };
 
   drawFieldToCanvas(canvas.context, wend, brickframe);

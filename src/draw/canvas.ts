@@ -1,10 +1,10 @@
-import { Brushwit, Stavewit } from "../settings";
+import { Brushwit, Settings, Stavewit } from "../settings";
 import { zMinus, zPlus, zTimes, toList, type Z } from "../help/reckon";
 import type { BoardCanvas } from "../board";
 import type { Eye } from "./eye";
 import { worldToCanvas, type Brush } from "./brush";
 import type { Rectangle, Ring } from "./shape";
-import type { Override } from "../help/type";
+import { swap, type Override } from "../help/type";
 import {
   hasChurch,
   hasCurvedRoad,
@@ -22,6 +22,7 @@ import {
   type Waytell,
   toFarthing,
   Waybook,
+  waytellOf,
 } from "../help/way";
 import {
   reckonChurch,
@@ -194,6 +195,43 @@ export const drawRoadToCanvas = (
 ) => {
   if (hasRoad(brickname)) {
     if (hasCurvedRoad(brickname)) {
+      const almostEdgetells = edgetellsOf(brickname, "r");
+      const edgetells =
+        almostEdgetells[0] === 0 && almostEdgetells[1] === 3
+          ? swap(almostEdgetells)
+          : almostEdgetells;
+      const nookZ = toNookZ(waynameOf(edgetells[1]));
+      const halfwidths = [
+        ((1 - Settings.draw.roadHalfwidth) *
+          (brickframe.width + brickframe.height)) /
+          2 /
+          2,
+        ((1 + Settings.draw.roadHalfwidth) *
+          (brickframe.width + brickframe.height)) /
+          2 /
+          2,
+      ];
+      withBorrowedContext(
+        context,
+        { brush: Brushwit.road, wend },
+        (context) => {
+          context.arc(
+            (nookZ.x * brickframe.width) / 2,
+            (nookZ.y * brickframe.height) / 2,
+            halfwidths[0],
+            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[0]))),
+            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[1])))
+          );
+          context.arc(
+            (nookZ.x * brickframe.width) / 2,
+            (nookZ.y * brickframe.height) / 2,
+            halfwidths[1],
+            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[1]))),
+            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[0]))),
+            true
+          );
+        }
+      );
     } else {
       const nooks = reckonStraightRoad(brickname, {
         ...brickframe,
@@ -358,11 +396,18 @@ export const drawCityToCanvas = (
           context,
           { brush: Brushwit.city, wend },
           (context) => {
-            const nooks = [
-              toNookZ(waynameOf(edgetells[0])),
-              toNookZ(waynameOf(edgetells[1])),
-              toNookZ(wayNext(waynameOf(edgetells[1]))),
-            ];
+            const nooks =
+              edgetells[0] === 0 && edgetells[1] === 3
+                ? [
+                    toNookZ(waynameOf(edgetells[1])),
+                    toNookZ(waynameOf(edgetells[0])),
+                    toNookZ(wayNext(waynameOf(edgetells[0]))),
+                  ]
+                : [
+                    toNookZ(waynameOf(edgetells[0])),
+                    toNookZ(waynameOf(edgetells[1])),
+                    toNookZ(wayNext(waynameOf(edgetells[1]))),
+                  ];
             context.moveTo(
               (nooks[0].x * brickframe.width) / 2,
               (nooks[0].y * brickframe.height) / 2

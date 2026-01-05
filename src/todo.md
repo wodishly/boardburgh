@@ -1,9 +1,9 @@
 - board
-  - fix logic for snapping
   - make deckframe a canvas object
   - make bricks spawn on deckframe and have two hover states
-  - brickshape drawing needs to know about the spin state on the board
   - understand why `withBorrowedContext` makes things offset inside the `CanvasDraw` call
+- snapping
+  - more than one neighbor
 - handle
   - mousedowns and mouseups are sometimes dont respond,
     maybe has to do with not checking the resulting state until the next frame

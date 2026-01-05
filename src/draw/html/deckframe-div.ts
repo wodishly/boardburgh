@@ -1,7 +1,7 @@
 import { isBrickname } from "../../brick/brickname";
 import { dealBrick, runTally, type Tally } from "../../brick/deck";
 import type { GameState } from "../../state";
-import { type Knobful, bakeKnob } from "./knob";
+import { type Knobful, makeKnob } from "./knob";
 import { makeSVGToken } from "../svg";
 import {
   type Elementful,
@@ -15,7 +15,7 @@ export type DeckframeDiv = ElementWithId<"div", "deckframe"> & {
   laveSpan: LaveSpan;
   tallyDiv: TallyDiv;
   dealDiv: DealDiv;
-} & Knobful<"make">;
+} & Knobful<"deal">;
 
 export type LaveSpan = ElementWithId<"span", "lave">;
 
@@ -34,7 +34,7 @@ export const makeDeckframeDiv: HTMLMake<DeckframeDiv> = (gameState) => {
   const tallyDiv = makeTallyDiv(gameState);
   const dealDiv = makeWithId("div", "deal" as const);
 
-  const makeKnob = bakeKnob(gameState, "make", () => {
+  const dealKnob = makeKnob(gameState, "deal", () => {
     dealBrick(gameState, 0);
     updateDeckframeWith(gameState, laveSpan, tallyDiv, runTally(gameState));
   });
@@ -42,10 +42,10 @@ export const makeDeckframeDiv: HTMLMake<DeckframeDiv> = (gameState) => {
     laveSpan.element,
     tallyDiv.element,
     dealDiv.element,
-    makeKnob.element
+    dealKnob.element
   );
 
-  return { ...deckframeDiv, laveSpan, tallyDiv, dealDiv, makeKnob };
+  return { ...deckframeDiv, laveSpan, tallyDiv, dealDiv, dealKnob };
 };
 
 export const makeTallyDiv: HTMLMake<TallyDiv> = (_) => {
