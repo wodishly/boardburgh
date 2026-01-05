@@ -1,6 +1,6 @@
-import { mod, type ZKind } from "../help/reckon";
-import { type Modulo, type Next, type Plus } from "../help/rime";
-import { type Thaw, type Override } from "../help/type";
+import { mod, type ZKind } from "./reckon";
+import { type Modulo, type Next, type Plus } from "./rime";
+import { type Thaw, type Override } from "./type";
 
 export const Waybook = ["east", "north", "west", "south"] as const;
 
@@ -29,6 +29,10 @@ type _WaytellOf<
 
 export const waytellOf = <N extends Wayname>(name: N) => {
   return Waybook.indexOf(name) as Override<WaytellOf<N>>;
+};
+
+export const isWaytell = (x: unknown): x is Waytell => {
+  return x === 0 || x === 1 || x === 2 || x === 3;
 };
 
 export const waynameOf = <T extends Waytell>(tell: T): (typeof Waybook)[T] => {

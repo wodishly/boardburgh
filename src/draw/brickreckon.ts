@@ -11,7 +11,7 @@ import {
   wayNext,
   wayPlus,
   type Wayname,
-} from "../brick/way";
+} from "../help/way";
 import { zTimes, z, type ZKind } from "../help/reckon";
 import { type Plus } from "../help/rime";
 import { type Override, sameshift } from "../help/type";

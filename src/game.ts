@@ -5,7 +5,7 @@ import { updateDeckframeWith } from "./draw/html/deckframe-div";
 import { type GameDiv, makeGameDiv } from "./draw/html/game-div";
 import { type GameState, makeGameState } from "./state";
 
-type Cursor = "default" | "grab" | "grabbing";
+// type Cursor = "default" | "grab" | "grabbing";
 
 export type Game = {
   state: GameState;
@@ -43,7 +43,7 @@ export const getCanvas = (game: Game) => {
   return game.div.boardframeDiv.boardCanvas;
 };
 
-export const getFeather = (game: Game) => {
+export const getContext = (game: Game) => {
   return game.div.boardframeDiv.boardCanvas.context;
 };
 
@@ -51,6 +51,6 @@ export const getEye = (game: Game) => {
   return game.div.boardframeDiv.boardCanvas.eye;
 };
 
-const setCursor = (game: Game, cursor: Cursor) => {
-  game.div.boardframeDiv.boardCanvas.element.style.cursor = cursor;
+export const getMouse = (game: Game) => {
+  return game.state.handle.mouse;
 };

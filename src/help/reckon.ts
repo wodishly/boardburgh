@@ -111,3 +111,15 @@ export const roundTo = (n: number, sharpness = 0) => {
 export const mod = (n: number, d: number) => {
   return ((n % d) + d) % d;
 };
+
+export const toXY = <K extends ZKind>(
+  greatness: number,
+  winkle: number,
+  kind: K
+): Z<K> => {
+  return {
+    x: greatness * Math.cos(winkle),
+    y: greatness * Math.sin(winkle),
+    kind,
+  };
+};

@@ -10,7 +10,7 @@ import {
   south,
   west,
 } from "./brickname";
-import type { Waytell } from "./way";
+import type { Waytell } from "../help/way";
 
 export const Edgebook = ["city", "field", "road"] as const;
 

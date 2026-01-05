@@ -1,9 +1,8 @@
 import { nextId } from "../state";
 import { Brickbook } from "./brickbook";
-import { choose, shuffle } from "../help/reckon";
+import { shuffle } from "../help/reckon";
 import { type Override, type Maybe } from "../help/type";
 import type { GameState } from "../state";
-import { Waybook } from "./way";
 import { type Brickname, hasShield } from "./brickname";
 import { type Brickshape, edges } from "./brickshape";
 
@@ -60,7 +59,7 @@ export const dealBrick = (gameState: GameState, _now: number) => {
     z: { x: 600, y: 200, kind: "world" as const },
     isSnapped: false,
     neighbors: undefined,
-    head: choose([...Waybook]),
+    spin: (Math.PI / 2) * Math.round(4 * Math.random()),
     state: "live" as const,
     choose: undefined,
   });

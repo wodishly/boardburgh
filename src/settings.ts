@@ -23,8 +23,7 @@ export const Stavewit = {
   fontSize: 20,
   fontFace: "sans-serif",
   fillColor: "black",
-  strokeColor: undefined,
-  strokeWidth: 0,
+  strokeColor: "red",
   textAlign: "center",
   textBaseline: "middle",
 } as const;

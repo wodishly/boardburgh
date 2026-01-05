@@ -3,14 +3,13 @@
   - make deckframe a canvas object
   - make bricks spawn on deckframe and have two hover states
   - brickshape drawing needs to know about the spin state on the board
-  - head direction wrong
+  - understand why `withBorrowedContext` makes things offset inside the `CanvasDraw` call
+- handle
+  - mousedowns and mouseups are sometimes dont respond,
+    maybe has to do with not checking the resulting state until the next frame
 - screen translation
   - zoom
 - meeples
 - other screens / devices
-- rotato
-  - rotato the rest
-  - beautification
-  - center of rotation needs to adjust with pan
 - crrf brick being weird
   - idk what this means

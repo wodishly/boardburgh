@@ -7,9 +7,9 @@ import {
   type Maybe,
   type Wayward,
 } from "../help/type";
-import { Waybook, type Wayname } from "./way";
+import { type Wayname } from "../help/way";
 import { isMouseInBrick, doesWeave } from "../board";
-import { getEye, type Game } from "../game";
+import { getEye, getMouse, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
 import { Settings } from "../settings";
 import type { Brickname } from "./brickname";
@@ -30,23 +30,29 @@ export type Brick<
 > = Brickshape<N> &
   Zful<"world"> & {
     boardId: BoardId;
-    head: Wayname;
+    spin: S extends "spin" ? number : 0 | 1 | 2 | 3;
     neighbors: S extends Cold
       ? Wayward<Brick<Brickname, Brickstate>>
       : undefined;
     isSnapped: S extends Cold ? true : S extends "fresh" ? false : boolean;
     state: S;
-    choose: BrickChoose<S>;
+    choose: S extends Chosen ? BrickChoose : undefined;
   };
 
-type BrickChoose<S extends Brickstate> = S extends Chosen
-  ? {
-      startZ: Z<"canvas">;
-      clickZ: Z<"canvas">;
-      spin: number;
-      head: Wayname;
-    }
-  : undefined;
+export type Winkle = number;
+
+type BrickChoose = {
+  brickZ: Z<"canvas">;
+  brickW: Winkle;
+  clickZ: Z<"canvas">;
+};
+
+export const isInState = <S extends Brickstate>(
+  brick: Brick,
+  state: S
+): brick is Brick<Brickname, S> => {
+  return brick.state === state;
+};
 
 export const isHot = (brick: Brick): brick is Brick<Brickname, Hot> => {
   return (
@@ -97,17 +103,17 @@ export const handleBrick = (game: Game, brick: Brick) => {
 
   if (brick.state === "drop" && mouse.state === "mouseup") {
     brick.choose = undefined;
-    brick.state = brick.isSnapped ? "frozen" : "hover2";
     // todo: this check shouldnt be needed, we should already know from state
     if (game.state.chosen) {
       game.state.boardlist.push(game.state.chosen);
       game.state.chosen = undefined;
     }
+    brick.state = brick.isSnapped ? "frozen" : "hover2";
   } else if (brick.state === "drag" && mouse.state === "mousedown") {
     brick.state = "drop";
   } else if (brick.state === "spin" && mouse.state === "mouseup") {
     brick.state = "drop";
-    endSpin(game, brick as Override<Brick<Brickname, "spin">>);
+    brick.spin = (Math.PI / 2) * Math.round(brick.spin / (Math.PI / 2));
   } else if (brick.state === "choose" && mouse.state === "mousemove") {
     brick.state = "spin";
   } else if (brick.state === "choose" && mouse.state === "mouseup") {
@@ -127,10 +133,9 @@ export const handleBrick = (game: Game, brick: Brick) => {
       if (!game.state.chosen) {
         brick.state = "choose";
         brick.choose = {
-          startZ: worldToCanvas(brick.z, getEye(game)),
+          brickZ: worldToCanvas(brick.z, getEye(game)),
+          brickW: brick.spin,
           clickZ: mouse.z,
-          head: brick.head,
-          spin: 0,
         };
         game.state.chosen = popById(game, brick.boardId);
       }
@@ -156,39 +161,25 @@ const popById = (game: Game, id: BoardId) => {
 };
 
 const handleSpin = (game: Game, brick: Brick<Brickname, Chosen>) => {
-  const mouse = game.state.handle.mouse;
-  if (!brick.choose) return;
-  const winkle = Math.atan2(mouse.z.y - brick.z.y, mouse.z.x - brick.z.x);
+  const mouse = getMouse(game);
+  const canvasBrick = worldToCanvas(brick.z, getEye(game));
+  const winkle = Math.atan2(
+    mouse.z.y - canvasBrick.y,
+    mouse.z.x - canvasBrick.x
+  );
   const winkle2 = Math.atan2(
-    brick.choose.clickZ.y - brick.z.y,
-    brick.choose.clickZ.x - brick.z.x
+    brick.choose.clickZ.y - canvasBrick.y,
+    brick.choose.clickZ.x - canvasBrick.x
   );
   const d = winkle - winkle2;
-  brick.choose.spin = d;
-  // const q = Math.round(d / (Math.PI / 2));
-  // const i = mod(Waybook.indexOf(brick.atChoose.head) - Math.round(q), 4);
-  // brick.head = Waybook[i];
-};
-
-const endSpin = (game: Game, brick: Brick<Brickname, "spin">) => {
-  const mouse = game.state.handle.mouse;
-  if (!brick.choose) return;
-  const winkle = Math.atan2(mouse.z.y - brick.z.y, mouse.z.x - brick.z.x);
-  const winkle2 = Math.atan2(
-    brick.choose.clickZ.y - brick.z.y,
-    brick.choose.clickZ.x - brick.z.x
-  );
-  const d = winkle - winkle2;
-  const q = Math.round(d / (Math.PI / 2));
-  const i = mod(Waybook.indexOf(brick.choose.head) - Math.round(q), 4);
-  brick.head = Waybook[i];
+  brick.spin = mod(brick.choose.brickW + d, Math.PI * 2);
 };
 
 const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
   const mouse = game.state.handle.mouse;
   const boardlist = game.state.boardlist;
   if (!brick.choose) return;
-  const dragStartWorldZ = canvasToWorld(brick.choose.startZ, getEye(game));
+  const dragStartWorldZ = canvasToWorld(brick.choose.brickZ, getEye(game));
   brick.z = {
     x: mouse.z.x - brick.choose.clickZ.x + dragStartWorldZ.x,
     // todo: understand why these deleting two lines fixes panning whilst dragging

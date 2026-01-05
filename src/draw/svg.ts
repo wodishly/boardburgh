@@ -8,7 +8,7 @@ import {
   type Brickname,
 } from "../brick/brickname";
 import { edgetellsOf } from "../brick/edge";
-import { Waybook, toNookZ, toEdgeZ, wayNext } from "../brick/way";
+import { Waybook, toNookZ, toEdgeZ, wayNext } from "../help/way";
 import {
   withCommas,
   withSpaces,
@@ -26,7 +26,7 @@ import {
   type Roadnooks,
   reckonTown,
   reckonChurch,
-} from "./reckon-brickshape";
+} from "./brickreckon";
 import {
   toRectangle,
   type Fournook,
