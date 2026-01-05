@@ -15,7 +15,18 @@ export type Z<
 
 export type Zful<K extends ZKind> = { z: Z<K> };
 
+export type WithCommas<X extends number, Y extends number> = `${X},${Y}`;
 export type WithSpaces<X extends number, Y extends number> = `${X} ${Y}`;
+
+export type Navel<K extends ZKind> = Z<K, 0, 0>;
+
+export const navel = <K extends ZKind>(kind: K): Navel<K> => {
+  return {
+    x: 0,
+    y: 0,
+    kind,
+  };
+};
 
 export const toList = <K extends ZKind>({ x, y }: Z<K>): Flight<number, 2> => {
   return [x, y];
@@ -80,16 +91,16 @@ export const withCommas = <X extends number, Y extends number>(
   { x, y }: Z<ZKind>,
   doRound = false
 ) =>
-  `${doRound ? Math.round(x) : x},${
-    doRound ? Math.round(y) : y
-  }` as `${X},${Y}`;
+  `${doRound ? Math.round(x) : x},${doRound ? Math.round(y) : y}` as Override<
+    WithCommas<X, Y>
+  >;
 
 export const withSpaces = <X extends number, Y extends number>(
-  z: Z<ZKind>,
+  { x, y }: Z<ZKind>,
   doRound = false
 ) => {
-  return `${doRound ? Math.round(z.x) : z.x} ${
-    doRound ? Math.round(z.y) : z.y
+  return `${doRound ? Math.round(x) : x} ${
+    doRound ? Math.round(y) : y
   }` as Override<WithSpaces<X, Y>>;
 };
 

@@ -1,6 +1,6 @@
-import { makeWithId, type ElementWithId } from "./html/html";
-import type { Override } from "../help/type";
-import type { GameState } from "../state";
+import { makeWithId, type ElementWithId } from "./type";
+import type { Override } from "../../help/type";
+import type { GameState } from "../../state";
 
 export type Knobname = "make" | "break";
 

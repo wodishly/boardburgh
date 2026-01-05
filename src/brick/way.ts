@@ -1,6 +1,6 @@
-import { mod, type Z } from "../help/reckon";
-import { type Modulo, type Next, type Plus, flight } from "../help/rime";
-import { sameshift, type Thaw, type Override } from "../help/type";
+import { mod, type ZKind } from "../help/reckon";
+import { type Modulo, type Next, type Plus } from "../help/rime";
+import { type Thaw, type Override } from "../help/type";
 
 export const Waybook = ["east", "north", "west", "south"] as const;
 
@@ -57,18 +57,32 @@ export const wayPlus = <N extends Wayname, M extends Wayname>(
   >;
 };
 
-export type NookZ<N extends Wayname> = {
-  x: N extends "east" | "north" ? 1 : -1;
-  y: N extends "east" | "south" ? 1 : -1;
-  kind: "svg";
-};
+export type NookZ<N extends Wayname> = N extends "east"
+  ? { x: 1; y: 1; kind: "svg" }
+  : N extends "north"
+  ? { x: 1; y: -1; kind: "svg" }
+  : N extends "west"
+  ? { x: -1; y: -1; kind: "svg" }
+  : N extends "south"
+  ? { x: -1; y: 1; kind: "svg" }
+  : never;
+
+export type EdgeZ<N extends Wayname> = N extends "east"
+  ? { x: 1; y: 0; kind: "svg" }
+  : N extends "north"
+  ? { x: 0; y: -1; kind: "svg" }
+  : N extends "west"
+  ? { x: -1; y: 0; kind: "svg" }
+  : N extends "south"
+  ? { x: 0; y: 1; kind: "svg" }
+  : never;
 
 /**
  * @returns the starting corner of the way, meted moonwise.
  * north is negative
  */
 
-export const toNookZ = <N extends Wayname>(way: N): NookZ<N> => {
+export const toNookZ = <N extends Wayname>(way: N) => {
   switch (way) {
     case "east":
       return { x: 1, y: 1, kind: "svg" } as Override<NookZ<N>>;
@@ -86,21 +100,22 @@ export const toNookZ = <N extends Wayname>(way: N): NookZ<N> => {
  * @returns the edge of the way.
  * north is negative
  */
-
-export const toEdgeZ = (way: Wayname): Z<"svg"> => {
+export const toEdgeZ = <N extends Wayname>(way: N) => {
   switch (way) {
     case "east":
-      return { x: 1, y: 0, kind: "svg" };
+      return { x: 1, y: 0, kind: "svg" } as Override<EdgeZ<N>>;
     case "north":
-      return { x: 0, y: -1, kind: "svg" };
+      return { x: 0, y: -1, kind: "svg" } as Override<EdgeZ<N>>;
     case "west":
-      return { x: -1, y: 0, kind: "svg" };
+      return { x: -1, y: 0, kind: "svg" } as Override<EdgeZ<N>>;
     case "south":
-      return { x: 0, y: 1, kind: "svg" };
+      return { x: 0, y: 1, kind: "svg" } as Override<EdgeZ<N>>;
   }
   way satisfies never;
 };
 
-export const toZsFrom = (way: Wayname) => {
-  return sameshift(flight(4), (n) => toNookZ(wayPlus(way, Waybook[n])));
+export const toFarthing = (way: Wayname, kind: ZKind) => {
+  return (
+    ((kind === "canvas" ? 3 - waytellOf(way) : waytellOf(way)) * Math.PI) / 2
+  );
 };

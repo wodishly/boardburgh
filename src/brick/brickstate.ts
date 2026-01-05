@@ -8,11 +8,12 @@ import {
   type Wayward,
 } from "../help/type";
 import { Waybook, type Wayname } from "./way";
-import { isMouseInBrick, wayTo, doesWeave } from "../board";
+import { isMouseInBrick, doesWeave } from "../board";
 import { getEye, type Game } from "../game";
-import { worldToScreen, screenToWorld } from "../draw/draw";
+import { worldToCanvas, canvasToWorld } from "../draw/brush";
 import { Settings } from "../settings";
 import type { Brickname } from "./brickname";
+import { isChosen } from "../state";
 
 export type BoardId = number;
 
@@ -90,7 +91,7 @@ export const freeze = (brick: Brick) => {
 // todo: scale with screen
 export const handleBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
-  if (brick.boardId === game.state.chosen?.boardId) {
+  if (isChosen(game, brick)) {
     console.log(brick.state, mouse.state);
   }
 
@@ -126,7 +127,7 @@ export const handleBrick = (game: Game, brick: Brick) => {
       if (!game.state.chosen) {
         brick.state = "choose";
         brick.choose = {
-          startZ: worldToScreen(brick.z, getEye(game)),
+          startZ: worldToCanvas(brick.z, getEye(game)),
           clickZ: mouse.z,
           head: brick.head,
           spin: 0,
@@ -187,7 +188,7 @@ const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
   const mouse = game.state.handle.mouse;
   const boardlist = game.state.boardlist;
   if (!brick.choose) return;
-  const dragStartWorldZ = screenToWorld(brick.choose.startZ, getEye(game));
+  const dragStartWorldZ = canvasToWorld(brick.choose.startZ, getEye(game));
   brick.z = {
     x: mouse.z.x - brick.choose.clickZ.x + dragStartWorldZ.x,
     // todo: understand why these deleting two lines fixes panning whilst dragging
@@ -258,4 +259,19 @@ const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
       throw new Error("bad neighbor");
     }
   }
+};
+/**
+ * `wayTo(x, y) = z` iff `x` is `z` of `y`.
+ */
+export const wayTo = (brick: Brick, other: Brick): Wayname => {
+  const a = Math.atan2(brick.z.y - other.z.y, brick.z.x - other.z.x);
+  return a < (-3 * Math.PI) / 4
+    ? "west"
+    : a < -Math.PI / 4
+    ? "north"
+    : a < Math.PI / 4
+    ? "east"
+    : a < (3 * Math.PI) / 4
+    ? "south"
+    : "west";
 };

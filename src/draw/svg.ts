@@ -6,9 +6,9 @@ import {
   hasShield,
   hasTown,
   type Brickname,
-} from "../../brick/brickname";
-import { edgetellsOf } from "../../brick/edge";
-import { Waybook, toNookZ, toEdgeZ, wayNext } from "../../brick/way";
+} from "../brick/brickname";
+import { edgetellsOf } from "../brick/edge";
+import { Waybook, toNookZ, toEdgeZ, wayNext } from "../brick/way";
 import {
   withCommas,
   withSpaces,
@@ -16,24 +16,28 @@ import {
   zTimes,
   type WithSpaces,
   type ZKind,
-} from "../../help/reckon";
-import { swap } from "../../help/type";
-import { Brushwit, Settings } from "../../settings";
-import { type Brush } from "../draw";
+} from "../help/reckon";
+import { swap } from "../help/type";
+import { Brushwit, Settings } from "../settings";
+import { type Brush } from "./brush";
 import {
   reckonStraightRoad,
   reckonShield,
   type Roadnooks,
   reckonTown,
   reckonChurch,
-} from "../draw-brickshape";
+} from "./reckon-brickshape";
 import {
   toRectangle,
   type Fournook,
   type Nookful,
   type Rectangle,
   type Ring,
-} from "../shape";
+} from "./shape";
+
+export type SvgBrush = {
+  [K in keyof CSSStyleDeclaration]: K extends SvgBrushRimeKey ? number : string;
+};
 
 type SvgBrushRimeKey =
   | `${string}x`
@@ -43,10 +47,6 @@ type SvgBrushRimeKey =
   | `height`
   | `${string}Width`
   | `${string}Height`;
-
-export type SvgBrush = {
-  [K in keyof CSSStyleDeclaration]: K extends SvgBrushRimeKey ? number : string;
-};
 
 // todo
 export const toSvgBrush = (brush: Partial<Brush>): Partial<SvgBrush> => {
@@ -59,23 +59,6 @@ export const toSvgBrush = (brush: Partial<Brush>): Partial<SvgBrush> => {
     "textBaseline" in brush ? { textBaseline: brush.textBaseline } : {}
   );
 };
-
-type D<
-  X0 extends number,
-  Y0 extends number,
-  X1 extends number,
-  Y1 extends number,
-  B extends boolean
-> = `${M<X0, Y0>} ${L<X1, Y1>} ${Z<B>}`;
-type M<X extends number = number, Y extends number = number> = `M${WithSpaces<
-  X,
-  Y
->}`;
-type L<X extends number = number, Y extends number = number> = `L${WithSpaces<
-  X,
-  Y
->}`;
-type Z<B extends boolean = false> = B extends true ? `Z` : ``;
 
 export const makeSVGToken = (brickname: Brickname) => {
   const svg = makeSVGElement("svg");
@@ -90,6 +73,19 @@ export const makeSVGToken = (brickname: Brickname) => {
     brickname
   );
   return svg;
+};
+
+export const makeSVGElement = <K extends keyof SVGElementTagNameMap>(
+  tagName: K,
+  brush: Partial<SvgBrush> = {}
+): SVGElementTagNameMap[K] => {
+  const element = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    tagName
+  );
+  for (const [key, value] of Object.entries(brush))
+    element.setAttribute(key, `${value}`);
+  return element;
 };
 
 export const svgFrame = (): Rectangle<"svg"> => {
@@ -175,22 +171,58 @@ export const drawSVGBrickshape = (
     }
   }
 
-  if (hasCity(brickname)) {
-    const edgetells = edgetellsOf(brickname, "c");
-    switch (edgetells.length) {
-      case 4:
+  const edgetells = edgetellsOf(brickname, "c");
+  switch (edgetells.length) {
+    case 4:
+      svg.append(
+        makeSVGElement("rect", {
+          ...toSvgBrush(Brushwit.city),
+          ...toRectangle({ navel, greatness }),
+        })
+      );
+      break;
+    case 3:
+      const svgPath = [];
+      for (let i = 0; i < 4; i++) {
+        const nook = toNookZ(wayNext(Waybook[i]));
+        if (edgetells[0] === i || edgetells[1] === i || edgetells[2] === i) {
+          svgPath.push(`L${withSpaces(nook)}`);
+        } else {
+          svgPath.push(
+            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nook)}`
+          );
+        }
+      }
+      svgPath.push("Z");
+      svg.append(
+        makeSVGElement("path", {
+          ...toSvgBrush(Brushwit.city),
+          d: svgPath.join(" ").replace("L", "M"),
+        })
+      );
+      break;
+    case 2:
+      if ((edgetells[0] - edgetells[1]) % 2) {
         svg.append(
-          makeSVGElement("rect", {
+          makeSVGElement("path", {
             ...toSvgBrush(Brushwit.city),
-            ...toRectangle({ navel, greatness }),
+            d:
+              `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
+              ` ` +
+              `L${withSpaces(toNookZ(wayNext(Waybook[edgetells[0]])))}` +
+              ` ` +
+              `L${withSpaces(toNookZ(Waybook[edgetells[1]]))}` +
+              ` ` +
+              `L${withSpaces(toNookZ(wayNext(Waybook[edgetells[1]])))}` +
+              ` ` +
+              `Z`,
           })
         );
-        break;
-      case 3:
+      } else {
         const svgPath = [];
         for (let i = 0; i < 4; i++) {
           const nook = toNookZ(wayNext(Waybook[i]));
-          if (edgetells[0] === i || edgetells[1] === i || edgetells[2] === i) {
+          if (edgetells[0] === i || edgetells[1] === i) {
             svgPath.push(`L${withSpaces(nook)}`);
           } else {
             svgPath.push(
@@ -205,72 +237,33 @@ export const drawSVGBrickshape = (
             d: svgPath.join(" ").replace("L", "M"),
           })
         );
-        break;
-      case 2:
-        if ((edgetells[0] - edgetells[1]) % 2) {
-          svg.append(
-            makeSVGElement("path", {
-              ...toSvgBrush(Brushwit.city),
-              d:
-                `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
-                ` ` +
-                `L${withSpaces(toNookZ(wayNext(Waybook[edgetells[0]])))}` +
-                ` ` +
-                `L${withSpaces(toNookZ(Waybook[edgetells[1]]))}` +
-                ` ` +
-                `L${withSpaces(toNookZ(wayNext(Waybook[edgetells[1]])))}` +
-                ` ` +
-                `Z`,
-            })
-          );
-        } else {
-          const svgPath = [];
-          for (let i = 0; i < 4; i++) {
-            const nook = toNookZ(wayNext(Waybook[i]));
-            if (edgetells[0] === i || edgetells[1] === i) {
-              svgPath.push(`L${withSpaces(nook)}`);
-            } else {
-              svgPath.push(
-                `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nook)}`
-              );
-            }
-          }
-          svgPath.push("Z");
-          svg.append(
-            makeSVGElement("path", {
-              ...toSvgBrush(Brushwit.city),
-              d: svgPath.join(" ").replace("L", "M"),
-            })
-          );
-        }
-        break;
-      case 1:
+      }
+      break;
+    case 1:
+      svg.append(
+        makeSVGElement("path", {
+          ...toSvgBrush(Brushwit.city),
+          d:
+            `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
+            ` ` +
+            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withCommas(
+              toNookZ(wayNext(Waybook[edgetells[0]]))
+            )}` +
+            ` ` +
+            `Z`,
+        })
+      );
+      break;
+    case 0:
+      if (hasChurch(brickname)) {
         svg.append(
-          makeSVGElement("path", {
-            ...toSvgBrush(Brushwit.city),
-            d:
-              `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
-              ` ` +
-              `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withCommas(
-                toNookZ(wayNext(Waybook[edgetells[0]]))
-              )}` +
-              ` ` +
-              `Z`,
+          makeSVGElement("circle", {
+            ...toSvgBrush(Brushwit.church),
+            ...ringToSVGCircle(reckonChurch(brickname, svgFrame())),
           })
         );
-        break;
-      default:
-        throw new Error("bad city");
-    }
-  }
-
-  if (hasChurch(brickname)) {
-    svg.append(
-      makeSVGElement("circle", {
-        ...toSvgBrush(Brushwit.church),
-        ...ringToSVGCircle(reckonChurch(brickname, svgFrame())),
-      })
-    );
+      }
+      break;
   }
 
   if (hasShield(brickname)) {
@@ -298,17 +291,4 @@ const nookfulToSVGPath = <K extends ZKind>(nookful: Nookful<K, Roadnooks>) => {
   }
   svgPath.push("Z");
   return { d: svgPath.join(" ").replace("L", "M") };
-};
-
-export const makeSVGElement = <K extends keyof SVGElementTagNameMap>(
-  tagName: K,
-  brush: Partial<SvgBrush> = {}
-): SVGElementTagNameMap[K] => {
-  const element = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    tagName
-  );
-  for (const [key, value] of Object.entries(brush))
-    element.setAttribute(key, `${value}`);
-  return element;
 };

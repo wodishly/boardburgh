@@ -1,20 +1,49 @@
-import { handleBrick, isBrick, type Brick } from "./brick/brickstate";
+import { handleBrick, isBrick, wayTo, type Brick } from "./brick/brickstate";
 import {
   type ElementWithId,
   type HTMLMake,
   makeWithId,
-} from "./draw/html/html";
-import { Settings } from "./settings";
-import type { GameState } from "./state";
+} from "./draw/html/type";
+import { Brushwit, Settings } from "./settings";
 import { makeEye, resize, type Eye } from "./draw/eye";
-import { toEdgeZ, wayPlus, type Wayname } from "./brick/way";
-import { getCanvas, setCursor, type Game } from "./game";
-import { stave, wipe, borrowContext } from "./draw/canvas/canvas";
+import {
+  toEdgeZ,
+  toFarthing,
+  toNookZ,
+  Waybook,
+  waynameOf,
+  wayNext,
+  wayPlus,
+  type Waytell,
+} from "./brick/way";
+import { getCanvas, type Game } from "./game";
+import {
+  wipe,
+  withBorrowedContext,
+  withBorrowedContextForText,
+} from "./draw/canvas";
 import { drawDebug } from "./draw/html/game-div";
-import { z } from "./help/reckon";
-import { screenToWorld, worldToScreen, edgebrushOf } from "./draw/draw";
-import { drawBrickshape, spunAbout } from "./draw/draw-brickshape";
+import { withCommas, withSpaces, z } from "./help/reckon";
+import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
+import { ly, sameshift, type Maybe, type Override } from "./help/type";
+import { isChosen } from "./state";
+import {
+  hasChurch,
+  hasCurvedRoad,
+  hasRoad,
+  hasShield,
+  hasTown,
+} from "./brick/brickname";
+import {
+  reckonChurch,
+  reckonShield,
+  reckonStraightRoad,
+  reckonTown,
+} from "./draw/reckon-brickshape";
+import { edgetellsOf } from "./brick/edge";
+import { makeSVGElement, toSvgBrush } from "./draw/svg";
+import { flight } from "./help/rime";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {
   context: CanvasRenderingContext2D;
@@ -46,13 +75,9 @@ export const makeBoardframeDiv: HTMLMake<BoardframeDiv> = (gameState) => {
   };
 };
 
-export const nextId = (gameState: GameState) => {
-  return gameState.ids++;
-};
-
 export const isMouseInBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
-  const worldZ = screenToWorld(mouse.z, game.div.boardframeDiv.boardCanvas.eye);
+  const worldZ = canvasToWorld(mouse.z, game.div.boardframeDiv.boardCanvas.eye);
   return (
     Math.abs(brick.z.x - worldZ.x) < Settings.brickLength / 2 &&
     Math.abs(brick.z.y - worldZ.y) < Settings.brickLength / 2
@@ -86,24 +111,7 @@ export const doesWeave = (brick: Brick, other: Brick) => {
   way satisfies never;
 };
 
-/**
- * `wayTo(x, y) = z` iff `x` is `z` of `y`.
- */
-export const wayTo = (brick: Brick, other: Brick): Wayname => {
-  const a = Math.atan2(brick.z.y - other.z.y, brick.z.x - other.z.x);
-  return a < (-3 * Math.PI) / 4
-    ? "west"
-    : a < -Math.PI / 4
-    ? "north"
-    : a < Math.PI / 4
-    ? "east"
-    : a < (3 * Math.PI) / 4
-    ? "south"
-    : "west";
-};
-
 export const updateBoard = (game: Game, _now: number) => {
-  setCursor(game, "default");
   for (const thing of [...game.state.boardlist, game.state.chosen].reverse()) {
     if (isBrick(thing)) {
       handleBrick(game, thing);
@@ -121,17 +129,17 @@ export const drawBoard = (game: Game) => {
       throw new Error("bad thing");
     }
   }
-  drawThing(game, game.state.chosen);
+  drawChosen(game, game.state.chosen);
   drawDebug(game.state.handle, canvas);
 };
 
-const drawThing = (game: Game, thing: Brick | undefined) => {
-  if (thing === undefined) {
+const drawChosen = (game: Game, chosen: Maybe<Brick>) => {
+  if (chosen === undefined) {
     return;
-  } else if (isBrick(thing)) {
-    drawBrick(game, thing);
+  } else if (isBrick(chosen)) {
+    drawBrick(game, chosen);
   } else {
-    throw new Error("bad thing");
+    throw new Error("bad chosen");
   }
 };
 
@@ -142,105 +150,360 @@ const drawBrick = (game: Game, brick: Brick) => {
     greatness: z(Settings.brickLength, Settings.brickLength, "world"),
   };
 
-  drawBrickshape(
-    canvas,
-    nooks,
-    brick.brickname,
-    brick.head,
-    brick.choose?.spin
-  );
-
-  const rectangle = toRectangle({
-    navel: worldToScreen(nooks.navel, canvas.eye),
-    greatness: worldToScreen(nooks.greatness, canvas.eye, false),
+  const brickframe = toRectangle({
+    navel: worldToCanvas(nooks.navel, canvas.eye),
+    greatness: worldToCanvas(nooks.greatness, canvas.eye, false),
   });
 
-  borrowContext(canvas.context, edgebrushOf(brick), (context) => {
-    spunAbout(
-      context,
-      {
-        x: rectangle.x + rectangle.width / 2,
-        y: rectangle.y + rectangle.height / 2,
+  const wend = {
+    navel: z(
+      brickframe.x + brickframe.width / 2,
+      brickframe.y + brickframe.height / 2,
+      "canvas"
+    ),
+    winkle: toFarthing(brick.head, "canvas") + (brick.choose?.spin ?? 0),
+  };
+
+  withBorrowedContext(
+    canvas.context,
+    { brush: Brushwit.field, wend },
+    (context) => {
+      context.rect(
+        -brickframe.width / 2,
+        -brickframe.height / 2,
+        brickframe.width,
+        brickframe.height
+      );
+    }
+  );
+
+  if (hasRoad(brick.brickname)) {
+    if (hasCurvedRoad(brick.brickname)) {
+    } else {
+      const nooks = reckonStraightRoad(brick.brickname, {
+        ...brickframe,
+        x: -brickframe.width / 2,
+        y: -brickframe.height / 2,
+      });
+      withBorrowedContext(
+        canvas.context,
+        { brush: Brushwit.road, wend },
+        (context) => {
+          context.moveTo(nooks[0].x, nooks[0].y);
+          for (let i = 1; i < nooks.length; i++) {
+            context.lineTo(nooks[i].x, nooks[i].y);
+          }
+        }
+      );
+    }
+    if (hasTown(brick.brickname)) {
+      const town = reckonTown(brick.brickname, {
+        ...brickframe,
+        x: -brickframe.width / 2,
+        y: -brickframe.height / 2,
+      });
+      withBorrowedContext(
+        canvas.context,
+        { brush: Brushwit.town, wend },
+        (context) => {
+          context.arc(
+            town.navel.x,
+            town.navel.y,
+            town.halfwidth,
+            0,
+            2 * Math.PI
+          );
+        }
+      );
+    }
+  }
+  const edgetells = edgetellsOf(brick.brickname, "c");
+  switch (edgetells.length) {
+    case 4:
+      withBorrowedContext(
+        canvas.context,
+        { brush: Brushwit.city, wend },
+        (context) => {
+          context.rect(
+            -brickframe.width / 2,
+            -brickframe.height / 2,
+            brickframe.width,
+            brickframe.height
+          );
+        }
+      );
+      break;
+    case 3:
+      withBorrowedContext(
+        canvas.context,
+        { brush: Brushwit.city, wend },
+        (context) => {
+          const startNook = toNookZ(waynameOf(0));
+          context.moveTo(
+            (startNook.x * brickframe.width) / 2,
+            (startNook.y * brickframe.height) / 2
+          );
+          for (let i = 0; i < 4; i++) {
+            if (
+              edgetells[0] === i ||
+              edgetells[1] === i ||
+              edgetells[2] === i
+            ) {
+              const thisNook = toNookZ(waynameOf(i));
+              context.lineTo(
+                (thisNook.x * brickframe.width) / 2,
+                (thisNook.y * brickframe.height) / 2
+              );
+              const nextNook = toNookZ(wayNext(waynameOf(i)));
+              context.lineTo(
+                (nextNook.x * brickframe.width) / 2,
+                (nextNook.y * brickframe.height) / 2
+              );
+            } else {
+              const edgeZ = toEdgeZ(waynameOf(i as Override<Waytell>));
+              const navel = {
+                x: edgeZ.x * brickframe.width,
+                y: edgeZ.y * brickframe.height,
+                kind: "canvas",
+              };
+              context.arc(
+                navel.x,
+                navel.y,
+                (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
+                -Math.PI / 4 +
+                  toFarthing(wayNext(waynameOf(edgetells[i])), "canvas"),
+                -Math.PI / 4 + toFarthing(waynameOf(edgetells[i]), "canvas")
+              );
+            }
+          }
+        }
+      );
+      break;
+    case 2:
+      if ((edgetells[1] - edgetells[0]) % 2 === 0) {
+        withBorrowedContext(
+          canvas.context,
+          { brush: Brushwit.city, wend },
+          (context) => {
+            const startNook = toNookZ(waynameOf(0));
+            context.moveTo(
+              (startNook.x * brickframe.width) / 2,
+              (startNook.y * brickframe.height) / 2
+            );
+            // todo: north–south case
+            if (edgetells[0] === 0) {
+              const nooks = [
+                toNookZ(waynameOf(0)),
+                toNookZ(waynameOf(1)),
+                toNookZ(waynameOf(2)),
+              ] as const;
+              const edges = [
+                toEdgeZ(waynameOf(1)),
+                toEdgeZ(waynameOf(3)),
+              ] as const;
+              context.moveTo(
+                (nooks[0].x * brickframe.width) / 2,
+                (nooks[0].y * brickframe.height) / 2
+              );
+              context.lineTo(
+                (nooks[1].x * brickframe.width) / 2,
+                (nooks[1].y * brickframe.height) / 2
+              );
+              context.arc(
+                edges[0].x * brickframe.width,
+                edges[0].y * brickframe.height,
+                (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
+                Math.PI / 4,
+                (Math.PI * 3) / 4
+              );
+              context.lineTo(
+                (nooks[2].x * brickframe.width) / 2,
+                (nooks[2].y * brickframe.height) / 2
+              );
+              context.arc(
+                edges[1].x * brickframe.width,
+                edges[1].y * brickframe.height,
+                (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
+                (Math.PI * 5) / 4,
+                (Math.PI * 7) / 4
+              );
+            }
+          }
+        );
+      } else {
+        withBorrowedContext(
+          canvas.context,
+          { brush: Brushwit.city, wend },
+          (context) => {
+            const nooks = [
+              toNookZ(waynameOf(edgetells[0])),
+              toNookZ(waynameOf(edgetells[1])),
+              toNookZ(wayNext(waynameOf(edgetells[1]))),
+            ];
+            context.moveTo(
+              (nooks[0].x * brickframe.width) / 2,
+              (nooks[0].y * brickframe.height) / 2
+            );
+            context.lineTo(
+              (nooks[1].x * brickframe.width) / 2,
+              (nooks[1].y * brickframe.height) / 2
+            );
+            context.lineTo(
+              (nooks[2].x * brickframe.width) / 2,
+              (nooks[2].y * brickframe.height) / 2
+            );
+          }
+        );
+      }
+      break;
+    case 1:
+      const edgeZ = toEdgeZ(Waybook[edgetells[0]]);
+      const navel = {
+        x: edgeZ.x * brickframe.width,
+        y: edgeZ.y * brickframe.height,
         kind: "canvas",
-      },
-      brick.choose?.spin ?? 0,
-      (ctx) =>
-        ctx.rect(
-          -rectangle.width / 2,
-          -rectangle.height / 2,
-          rectangle.width,
-          rectangle.height
-        )
-    );
-  });
+      };
+      withBorrowedContext(
+        canvas.context,
+        { brush: Brushwit.city, wend },
+        (context) => {
+          context.arc(
+            navel.x,
+            navel.y,
+            (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
+            -Math.PI / 4 +
+              toFarthing(wayNext(waynameOf(edgetells[0])), "canvas"),
+            -Math.PI / 4 + toFarthing(waynameOf(edgetells[0]), "canvas")
+          );
+        }
+      );
+      break;
+    case 0:
+      if (hasChurch(brick.brickname)) {
+        const church = reckonChurch(brick.brickname, {
+          ...brickframe,
+          x: -brickframe.width / 2,
+          y: -brickframe.height / 2,
+        });
+        withBorrowedContext(
+          canvas.context,
+          { brush: Brushwit.church, wend },
+          (context) => {
+            context.arc(
+              church.navel.x,
+              church.navel.y,
+              church.halfwidth,
+              0,
+              2 * Math.PI
+            );
+          }
+        );
+      }
+      break;
+  }
 
-  stave(
-    game.div.boardframeDiv.boardCanvas,
-    `(${brick.z.x}, ${brick.z.y})`,
-    { x: brick.z.x, y: brick.z.y - 20, kind: "world" },
-    {
-      fontSize: 20,
-      fontFace: "sans-serif",
-      fillColor:
-        brick.boardId === game.state.chosen?.boardId ? "white" : "black",
-      textAlign: "center",
-      textBaseline: "middle",
+  if (hasShield(brick.brickname)) {
+    const shield = reckonShield(brick.brickname, {
+      ...brickframe,
+      x: -brickframe.width / 2,
+      y: -brickframe.height / 2,
+    });
+    withBorrowedContext(
+      canvas.context,
+      { brush: Brushwit.shield, wend },
+      (context) => {
+        context.rect(shield.x, shield.y, shield.width, shield.height);
+      }
+    );
+  }
+
+  withBorrowedContext(
+    canvas.context,
+    { brush: edgebrushOf(brick), dontFill: true, wend },
+    (context) => {
+      context.rect(
+        -brickframe.width / 2,
+        -brickframe.height / 2,
+        brickframe.width,
+        brickframe.height
+      );
     }
   );
-  stave(
-    game.div.boardframeDiv.boardCanvas,
-    brick.state,
-    { x: brick.z.x, y: brick.z.y + 20, kind: "world" },
+
+  withBorrowedContextForText(
+    canvas.context,
     {
-      fontSize: 20,
-      fontFace: "sans-serif",
-      fillColor:
-        brick.boardId === game.state.chosen?.boardId ? "white" : "black",
-      textAlign: "center",
-      textBaseline: "middle",
-    }
-  );
-  stave(
-    game.div.boardframeDiv.boardCanvas,
-    `${game.state.boardlist.indexOf(brick)}`,
-    { x: brick.z.x - 41, y: brick.z.y + 49, kind: "world" },
-    {
-      fontSize: 15,
-      fontFace: "sans-serif",
-      fillColor:
-        brick.boardId === game.state.chosen?.boardId ? "white" : "black",
-      textAlign: "center",
-      textBaseline: "middle",
-    }
-  );
-  stave(
-    game.div.boardframeDiv.boardCanvas,
-    `${brick.brickname}`,
-    { x: brick.z.x + 41, y: brick.z.y - 49, kind: "world" },
-    {
-      fontSize: 15,
-      fontFace: "sans-serif",
-      fillColor:
-        brick.boardId === game.state.chosen?.boardId ? "white" : "black",
-      textAlign: "center",
-      textBaseline: "middle",
-    }
-  );
-  stave(
-    game.div.boardframeDiv.boardCanvas,
-    "head",
-    {
-      x: brick.z.x + (Settings.brickLength / 3) * toEdgeZ(brick.head).x,
-      y: brick.z.y + (Settings.brickLength / 3) * toEdgeZ(brick.head).y,
-      kind: "world",
+      brush: { fillColor: isChosen(game, brick) ? "white" : "black" },
+      wend,
     },
+    `(${withCommas(brick.z)})`,
+    worldToCanvas(
+      { x: brick.z.x, y: brick.z.y - 20, kind: "world" },
+      canvas.eye
+    )
+  );
+  withBorrowedContextForText(
+    canvas.context,
     {
-      fontSize: 15,
-      fontFace: "sans-serif",
-      fillColor:
-        brick.boardId === game.state.chosen?.boardId ? "white" : "black",
-      textAlign: "center",
-      textBaseline: "middle",
-    }
+      brush: {
+        fontSize: 15,
+        fillColor: isChosen(game, brick) ? "white" : "black",
+      },
+      wend,
+    },
+    brick.state,
+    worldToCanvas(
+      { x: brick.z.x, y: brick.z.y + 20, kind: "world" },
+      canvas.eye
+    )
+  );
+  withBorrowedContextForText(
+    canvas.context,
+    {
+      brush: {
+        fontSize: 15,
+        fillColor: isChosen(game, brick) ? "white" : "black",
+      },
+      wend,
+    },
+    `${game.state.boardlist.indexOf(brick)}`,
+    worldToCanvas(
+      { x: brick.z.x - 41, y: brick.z.y + 49, kind: "world" },
+      canvas.eye
+    )
+  );
+  withBorrowedContextForText(
+    canvas.context,
+    {
+      brush: {
+        fontSize: 15,
+        fillColor: isChosen(game, brick) ? "white" : "black",
+      },
+      wend,
+    },
+    `${brick.brickname}`,
+    worldToCanvas(
+      { x: brick.z.x + 41, y: brick.z.y - 49, kind: "world" },
+      canvas.eye
+    )
+  );
+  withBorrowedContextForText(
+    canvas.context,
+    {
+      brush: {
+        fontSize: 15,
+        fillColor: isChosen(game, brick) ? "white" : "black",
+      },
+      wend,
+    },
+    "head",
+    worldToCanvas(
+      {
+        x: brick.z.x + (Settings.brickLength / 3) * toEdgeZ(brick.head).x,
+        y: brick.z.y + (Settings.brickLength / 3) * toEdgeZ(brick.head).y,
+        kind: "world",
+      },
+      canvas.eye
+    )
   );
 };

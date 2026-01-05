@@ -1,12 +1,13 @@
-import { type GameDiv } from "../html/game-div";
-import { Settings, Stavewit } from "../../settings";
-import type { Brick } from "../../brick/brickstate";
-import { wayPlus, type Wayname, Waybook } from "../../brick/way";
-import { zMinus, zPlus, zTimes, toList, type Z } from "../../help/reckon";
-import type { BoardCanvas } from "../../board";
-import type { Eye } from "../eye";
-import { worldToScreen, type Brush } from "../draw";
-import type { Ring } from "../shape";
+import { type GameDiv } from "./html/game-div";
+import { Brushwit, Settings, Stavewit } from "../settings";
+import type { Brick } from "../brick/brickstate";
+import { wayPlus, type Wayname, Waybook } from "../brick/way";
+import { zMinus, zPlus, zTimes, toList, type Z } from "../help/reckon";
+import type { BoardCanvas } from "../board";
+import type { Eye } from "./eye";
+import { worldToCanvas, type Brush } from "./brush";
+import type { Ring } from "./shape";
+import type { Override } from "../help/type";
 
 export type CanvasBrush = Pick<Brush, "textAlign" | "textBaseline"> & {
   [K in keyof Brush as K extends `${infer T}Color`
@@ -18,62 +19,103 @@ export type CanvasBrush = Pick<Brush, "textAlign" | "textBaseline"> & {
 export const toCanvasBrush = (brush: Partial<Brush>): Partial<CanvasBrush> => {
   return Object.assign(
     {},
-    "fillColor" in brush ? { fillStyle: brush.fillColor } : {},
-    "strokeColor" in brush ? { strokeStyle: brush.strokeColor } : {},
-    "strokeWidth" in brush ? { lineWidth: brush.strokeWidth } : {},
-    "fontSize" in brush && "fontFace" in brush
-      ? { font: `${brush.fontSize}px ${brush.fontFace}` }
-      : {},
-    { textAlign: brush.textAlign, textBaseline: brush.textBaseline }
+    {
+      ...("fillColor" in brush ? { fillStyle: brush.fillColor } : {}),
+      ...("strokeColor" in brush ? { strokeStyle: brush.strokeColor } : {}),
+      ...("strokeWidth" in brush ? { lineWidth: brush.strokeWidth } : {}),
+      ...("fontSize" in brush || "fontFace" in brush
+        ? {
+            font: (`${brush.fontSize ?? Stavewit.fontSize}px` +
+              ` ` +
+              `${brush.fontFace ?? Stavewit.fontFace}`) as Override<
+              CanvasBrush["font"]
+            >,
+          }
+        : {}),
+      ...("textAlign" in brush ? { textAlign: brush.textAlign } : {}),
+      ...("textBaseline" in brush ? { textBaseline: brush.textBaseline } : {}),
+    }
   );
 };
 
-type Borrowwit = { dontFill: boolean; dontStroke: boolean };
+type CanvasDraw = (context: CanvasRenderingContext2D) => void;
 
-export const borrowContext = (
+type CanvasDrawWit = {
+  brush: Partial<Brush>;
+  dontFill?: boolean;
+  dontStroke?: boolean;
+  wend?: CanvasWend;
+};
+
+type CanvasWend = {
+  navel: Z<"canvas">;
+  winkle: number;
+};
+
+export const withBorrowedContext = (
   context: CanvasRenderingContext2D,
-  brushwit: Partial<Brush>,
-  callback: (context: CanvasRenderingContext2D) => void,
-  borrowwit?: Partial<Borrowwit>
-): true => {
+  wit: CanvasDrawWit,
+  callback: CanvasDraw
+) => {
+  const { wend, brush } = wit;
+
   const oldContext = context;
-  Object.assign(context, toCanvasBrush(brushwit));
+  Object.assign(context, toCanvasBrush(Brushwit.mean), toCanvasBrush(brush));
+
+  if (wend) {
+    context.save();
+    context.translate(wend.navel.x, wend.navel.y);
+    context.rotate(wend.winkle);
+  }
 
   context.beginPath();
   callback(context);
   context.closePath();
 
-  if ("fillColor" in brushwit && !(borrowwit && borrowwit.dontFill))
-    context.fill();
-  if ("strokeColor" in brushwit && !(borrowwit && borrowwit.dontStroke)) {
-    context.stroke();
+  if (!wit?.dontFill) context.fill();
+  if (!wit?.dontStroke) context.stroke();
+
+  if (wend) {
+    context.restore();
   }
-
-  if (!("strokeWidth" in oldContext)) {
-    Object.assign(context, { lineWidth: 2 });
-  }
-
-  return true;
-};
-
-export const borrowContextFont = (
-  context: CanvasRenderingContext2D,
-  brushwit: Partial<Brush>,
-  staves: string,
-  { x, y }: Z<"canvas">,
-  borrowwit?: Partial<Borrowwit>
-): true => {
-  const oldContext = context;
-  Object.assign(context, toCanvasBrush(Stavewit), toCanvasBrush(brushwit));
-
-  if ("fillColor" in brushwit && !(borrowwit && borrowwit.dontFill))
-    context.fillText(staves, x, y);
-  if ("strokeColor" in brushwit && !(borrowwit && borrowwit.dontStroke))
-    context.strokeText(staves, x, y);
 
   Object.assign(context, oldContext);
+};
 
-  return true;
+export const withBorrowedContextForText = (
+  context: CanvasRenderingContext2D,
+  wit: CanvasDrawWit,
+  staves: string,
+  { x, y }: Z<"canvas">
+) => {
+  const { wend, brush } = wit;
+
+  const oldContext = context;
+  Object.assign(context, toCanvasBrush(Stavewit), toCanvasBrush(brush));
+
+  if (wend) {
+    context.save();
+    context.translate(wend.navel.x, wend.navel.y);
+    context.rotate(wend.winkle);
+  }
+  if (!wit?.dontFill)
+    context.fillText(
+      staves,
+      x - (wend?.navel.x ?? 0),
+      y - (wend?.navel.y ?? 0)
+    );
+  if (!wit?.dontStroke)
+    context.strokeText(
+      staves,
+      x - (wend?.navel.x ?? 0),
+      y - (wend?.navel.y ?? 0)
+    );
+
+  if (wend) {
+    context.restore();
+  }
+
+  Object.assign(context, oldContext);
 };
 
 /**
@@ -152,15 +194,6 @@ export const wipe = ({ context }: BoardCanvas) => {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 };
 
-export const stave = (
-  { eye, context }: BoardCanvas,
-  staves: string,
-  z: Z<"world">,
-  brush: Partial<Brush> = {}
-) => {
-  borrowContextFont(context, brush, staves, worldToScreen(z, eye));
-};
-
 export const ringdeal = (
   { eye, context }: BoardCanvas,
   { navel, halfwidth }: Ring<"world">,
@@ -176,7 +209,7 @@ export const ringdeal = (
 
   context.beginPath();
   context.arc(
-    ...toList(worldToScreen(navel, eye)),
+    ...toList(worldToCanvas(navel, eye)),
     eye.zoom.scale * halfwidth,
     start,
     end

@@ -1,4 +1,4 @@
-import { nextId } from "../board";
+import { nextId } from "../state";
 import { Brickbook } from "./brickbook";
 import { choose, shuffle } from "../help/reckon";
 import { type Override, type Maybe } from "../help/type";

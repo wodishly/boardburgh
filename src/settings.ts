@@ -1,9 +1,8 @@
-import type { Brush } from "./draw/draw";
+import type { Brush } from "./draw/brush";
 
 export const Settings = {
   brickLength: 128,
   draw: {
-    lineWidth: 4,
     roadHalfwidth: 0.15,
   },
 } as const;
@@ -15,7 +14,7 @@ export const Brushwit = {
   shield: { fillColor: "#88f", strokeColor: "#eef" },
   town: { fillColor: "grey", strokeColor: "black" },
   church: { fillColor: "coral", strokeColor: "darkred" },
-  mean: { strokeWidth: 1 },
+  mean: { strokeWidth: 2 },
 } as const;
 
 Brushwit satisfies Record<string, Partial<Brush>>;

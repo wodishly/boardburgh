@@ -3,6 +3,7 @@
   - make deckframe a canvas object
   - make bricks spawn on deckframe and have two hover states
   - brickshape drawing needs to know about the spin state on the board
+  - head direction wrong
 - screen translation
   - zoom
 - meeples
@@ -12,4 +13,4 @@
   - beautification
   - center of rotation needs to adjust with pan
 - crrf brick being weird
-
+  - idk what this means

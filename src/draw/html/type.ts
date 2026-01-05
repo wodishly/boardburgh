@@ -1,5 +1,5 @@
 import type { Game } from "../../game";
-import type { KnobId } from "../knob";
+import type { KnobId } from "./knob";
 import type { GameState } from "../../state";
 
 export type HTMLKey = keyof HTMLElementTagNameMap;

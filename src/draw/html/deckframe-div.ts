@@ -1,15 +1,15 @@
 import { isBrickname } from "../../brick/brickname";
 import { dealBrick, runTally, type Tally } from "../../brick/deck";
 import type { GameState } from "../../state";
-import { type Knobful, bakeKnob } from "../knob";
-import { makeSVGToken } from "../svg/svg";
+import { type Knobful, bakeKnob } from "./knob";
+import { makeSVGToken } from "../svg";
 import {
   type Elementful,
   type ElementWithId,
   type HTMLMake,
   makeWithId,
   unchildAll,
-} from "./html";
+} from "./type";
 
 export type DeckframeDiv = ElementWithId<"div", "deckframe"> & {
   laveSpan: LaveSpan;

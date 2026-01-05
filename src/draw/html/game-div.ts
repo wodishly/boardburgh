@@ -7,9 +7,9 @@ import {
 } from "../../board";
 import { wakeHandle, type Handle } from "../handle";
 import { withCommas, type Z } from "../../help/reckon";
-import { type ElementWithId, makeWithId } from "./html";
-import { screenToWorld, worldToScreen } from "../draw";
-import { ringdeal } from "../canvas/canvas";
+import { type ElementWithId, makeWithId } from "./type";
+import { canvasToWorld, worldToCanvas } from "../brush";
+import { ringdeal } from "../canvas";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
   boardframeDiv: BoardframeDiv;
@@ -42,17 +42,17 @@ export const drawDebug = (handle: Handle, boardCanvas: BoardCanvas) => {
 
   drawDebugOrd(
     boardCanvas,
-    screenToWorld(handle.mouse.z, boardCanvas.eye),
+    canvasToWorld(handle.mouse.z, boardCanvas.eye),
     "mouse"
   );
   drawDebugOrd(
     boardCanvas,
-    screenToWorld(boardCanvas.eye.pan, boardCanvas.eye),
+    canvasToWorld(boardCanvas.eye.pan, boardCanvas.eye),
     "0"
   );
   drawDebugOrd(
     boardCanvas,
-    screenToWorld({ x: 15, y: 15, kind: "canvas" as const }, boardCanvas.eye),
+    canvasToWorld({ x: 15, y: 15, kind: "canvas" as const }, boardCanvas.eye),
     "0"
   );
   drawDebugOrd(boardCanvas, { x: 400, y: 200, kind: "world" as const }, "ord");
@@ -65,7 +65,7 @@ export const drawDebugOrd = (
 ) => {
   const { eye, context: feather } = boardCanvas;
   const worldZ = z;
-  const screenZ = worldToScreen(z, eye);
+  const screenZ = worldToCanvas(z, eye);
 
   feather.fillText(
     `${name}_s: ${withCommas(screenZ, true)}`,
@@ -75,7 +75,7 @@ export const drawDebugOrd = (
   ringdeal(
     boardCanvas,
     {
-      navel: z.kind === "world" ? worldZ : screenToWorld(screenZ, eye),
+      navel: z.kind === "world" ? worldZ : canvasToWorld(screenZ, eye),
       halfwidth: 2,
     },
     0,

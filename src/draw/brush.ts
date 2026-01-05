@@ -1,10 +1,8 @@
-import type { BoardCanvas } from "../board";
 import type { Brick } from "../brick/brickstate";
 import type { Z } from "../help/reckon";
 import type { Eye } from "./eye";
 import { fg } from "./html/game-div";
 
-export type Feather = BoardCanvas | SVGSVGElement;
 export type Brush = {
   fillColor: string;
   strokeColor: string;
@@ -39,7 +37,7 @@ export const edgebrushOf = (brick: Brick): Partial<Brush> => {
   brick.state satisfies never;
 };
 
-export const worldToScreen = (
+export const worldToCanvas = (
   z: Z<"world">,
   eye: Eye,
   doPan = true
@@ -51,7 +49,7 @@ export const worldToScreen = (
   };
 };
 
-export const screenToWorld = (
+export const canvasToWorld = (
   z: Z<"canvas">,
   eye: Eye,
   doPan = true
@@ -61,8 +59,4 @@ export const screenToWorld = (
     y: (z.y - (doPan ? eye.pan.y : 0)) / eye.zoom.scale,
     kind: "world" as const,
   };
-};
-
-export const onesomeToWorld = ({ x, y }: Z<"svg">): Z<"world"> => {
-  return { x, y, kind: "world" as const };
 };
