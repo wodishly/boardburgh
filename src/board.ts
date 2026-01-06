@@ -29,6 +29,7 @@ import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
 import { type Maybe } from "./help/type";
 import { isChosen } from "./state";
+import { updateHandle } from "./draw/handle";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {
   context: CanvasRenderingContext2D;
@@ -78,7 +79,8 @@ export const doesWeave = (brick: Brick, other: Brick) => {
   );
 };
 
-export const updateBoard = (game: Game, _now: number) => {
+export const updateBoard = (game: Game, now: number) => {
+  updateHandle(game, now);
   for (const thing of [...game.state.boardlist, game.state.chosen].reverse()) {
     if (isBrick(thing)) {
       handleBrick(game, thing);
@@ -97,7 +99,7 @@ export const drawBoard = (game: Game) => {
     }
   }
   drawChosen(game, game.state.chosen);
-  drawDebug(game.state.handle, canvas);
+  drawDebug(game)
 };
 
 const drawChosen = (game: Game, chosen: Maybe<Brick>) => {
@@ -164,61 +166,63 @@ const drawBrick = (game: Game, brick: Brick) => {
     }
   );
 
-  withBorrowedContextForText(
-    canvas.context,
-    {
-      brush: { fillColor: isChosen(game, brick) ? "white" : "black" },
-      wend,
-    },
-    `(${withCommas(brick.z)})`,
-    worldToCanvas(
-      { x: brick.z.x, y: brick.z.y - 20, kind: "world" },
-      canvas.eye
-    )
-  );
-  withBorrowedContextForText(
-    canvas.context,
-    {
-      brush: {
-        fontSize: 15,
-        fillColor: isChosen(game, brick) ? "white" : "black",
+  if (game.state.isLeeching) {
+    withBorrowedContextForText(
+      canvas.context,
+      {
+        brush: { fillColor: isChosen(game, brick) ? "white" : "black" },
+        wend,
       },
-      wend,
-    },
-    brick.state,
-    worldToCanvas(
-      { x: brick.z.x, y: brick.z.y + 20, kind: "world" },
-      canvas.eye
-    )
-  );
-  withBorrowedContextForText(
-    canvas.context,
-    {
-      brush: {
-        fontSize: 15,
-        fillColor: isChosen(game, brick) ? "white" : "black",
+      `(${withCommas(brick.z)})`,
+      worldToCanvas(
+        { x: brick.z.x, y: brick.z.y - 20, kind: "world" },
+        canvas.eye
+      )
+    );
+    withBorrowedContextForText(
+      canvas.context,
+      {
+        brush: {
+          fontSize: 15,
+          fillColor: isChosen(game, brick) ? "white" : "black",
+        },
+        wend,
       },
-      wend,
-    },
-    `${game.state.boardlist.indexOf(brick)}`,
-    worldToCanvas(
-      { x: brick.z.x - 41, y: brick.z.y + 49, kind: "world" },
-      canvas.eye
-    )
-  );
-  withBorrowedContextForText(
-    canvas.context,
-    {
-      brush: {
-        fontSize: 15,
-        fillColor: isChosen(game, brick) ? "white" : "black",
+      brick.state,
+      worldToCanvas(
+        { x: brick.z.x, y: brick.z.y + 20, kind: "world" },
+        canvas.eye
+      )
+    );
+    withBorrowedContextForText(
+      canvas.context,
+      {
+        brush: {
+          fontSize: 15,
+          fillColor: isChosen(game, brick) ? "white" : "black",
+        },
+        wend,
       },
-      wend,
-    },
-    `${brick.brickname}`,
-    worldToCanvas(
-      { x: brick.z.x + 41, y: brick.z.y - 49, kind: "world" },
-      canvas.eye
-    )
-  );
+      `${game.state.boardlist.indexOf(brick)}`,
+      worldToCanvas(
+        { x: brick.z.x - 41, y: brick.z.y + 49, kind: "world" },
+        canvas.eye
+      )
+    );
+    withBorrowedContextForText(
+      canvas.context,
+      {
+        brush: {
+          fontSize: 15,
+          fillColor: isChosen(game, brick) ? "white" : "black",
+        },
+        wend,
+      },
+      `${brick.brickname}`,
+      worldToCanvas(
+        { x: brick.z.x + 41, y: brick.z.y - 49, kind: "world" },
+        canvas.eye
+      )
+    );
+  }
 };

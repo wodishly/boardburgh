@@ -95,6 +95,7 @@ div#tally ul li label {
   margin-left: 0.5rem;
   font-weight: bold;
   font-size: larger;
+  width: 1rem;
 }
 
 div#deal {

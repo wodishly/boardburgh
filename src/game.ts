@@ -3,6 +3,7 @@ import { freeze } from "./brick/brickstate";
 import { dealBrick, runTally } from "./brick/deck";
 import { updateDeckframeWith } from "./draw/html/deckframe-div";
 import { type GameDiv, makeGameDiv } from "./draw/html/game-div";
+import { handleKeys } from "./key";
 import { type GameState, makeGameState } from "./state";
 
 // type Cursor = "default" | "grab" | "grabbing";
@@ -32,6 +33,7 @@ export const startGame = (game: Game) => {
 };
 
 export const updateGame = (game: Game, now: number) => {
+  handleKeys(game, now);
   updateBoard(game, now);
 };
 

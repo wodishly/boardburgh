@@ -13,15 +13,14 @@ import { getEye, getMouse, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
 import { Settings } from "../settings";
 import type { Brickname } from "./brickname";
-import { isChosen } from "../state";
 
 export type BoardId = number;
 
 export type Brickstate = Hot | Cold;
 export type Hot = OnDeck | OnBoard;
 export type OnDeck = "fresh" | "hover1";
-export type OnBoard = "live" | "hover2" | Chosen | "drop";
-export type Chosen = "choose" | "drag" | "spin";
+export type OnBoard = "live" | Chosen | "drop";
+export type Chosen = "choose" | "drag" | "spin" | "hover2";
 export type Cold = "nearby" | "frozen";
 
 export type Brick<
@@ -85,21 +84,12 @@ export const freeze = (brick: Brick) => {
   brick.isSnapped = true;
 };
 
-// todo: scale with screen
 export const handleBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
-  if (isChosen(game, brick)) {
-    console.log(brick.state, mouse.state);
-  }
 
   if (brick.state === "drop" && mouse.state === "mouseup") {
-    brick.choose = undefined;
-    // todo: this check shouldnt be needed, we should already know from state
-    if (game.state.chosen) {
-      game.state.boardlist.push(game.state.chosen);
-      game.state.chosen = undefined;
-    }
-    brick.state = brick.isSnapped ? "frozen" : "hover2";
+    brick.state = brick.isSnapped ? "frozen" : "live";
+    unchoose(game);
   } else if (brick.state === "drag" && mouse.state === "mousedown") {
     brick.state = "drop";
   } else if (brick.state === "spin" && mouse.state === "mouseup") {
@@ -121,25 +111,55 @@ export const handleBrick = (game: Game, brick: Brick) => {
     handleDrag(game, brick as Override<Brick<"drag">>);
   } else if (isMouseInBrick(game, brick)) {
     if (brick.state === "hover2" && mouse.state === "mousedown") {
+      brick.state = "choose";
       if (!game.state.chosen) {
-        brick.state = "choose";
-        brick.choose = {
-          brickZ: worldToCanvas(brick.z, getEye(game)),
-          brickW: (brick.farthings * Math.PI) / 2,
-          clickZ: mouse.z,
-        };
-        game.state.chosen = popById(game, brick.boardId);
+        choose(game, brick);
       }
-    } else if (
-      (brick.state === "live" && mouse.state === "mousemove") ||
-      (brick.state === "hover2" && mouse.state === "mousemove")
-    ) {
-      brick.state = "hover2";
+      brick.choose = {
+        brickZ: worldToCanvas(brick.z, getEye(game)),
+        brickW: (brick.farthings * Math.PI) / 2,
+        clickZ: mouse.z,
+      };
+    } else if (brick.state === "live" && mouse.state === "mousemove") {
+      if (!game.state.chosen) {
+        brick.state = "hover2";
+        choose(game, brick);
+      }
+    } else if (brick.state === "hover2") {
+      if (!game.state.chosen) {
+        choose(game, brick);
+      }
+    } else if (brick.state === "live" && mouse.state === "mouseup") {
+      if (!game.state.chosen) {
+        brick.state = "hover2";
+        choose(game, brick);
+      }
+    } else {
     }
-  } else if (brick.state === "choose") {
   } else {
+    if (brick.state === "hover2") {
+      brick.state = "live";
+      unchoose(game);
+    }
     brick.state = isHot(brick) ? "live" : "frozen";
   }
+};
+
+const choose = (game: Game, brick: Brick) => {
+  if (game.state.chosen) {
+    throw new Error("bad choose");
+  }
+  game.state.chosen = popById(game, brick.boardId);
+  // console.log("chose", game.state.chosen);
+};
+
+const unchoose = (game: Game) => {
+  if (!game.state.chosen) {
+    throw new Error("bad unchoose");
+  }
+  game.state.boardlist.push(game.state.chosen);
+  // console.log("unchose", game.state.chosen);
+  game.state.chosen = undefined;
 };
 
 const popById = (game: Game, id: BoardId) => {

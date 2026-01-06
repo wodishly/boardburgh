@@ -1,6 +1,7 @@
 import type { BoardCanvas } from "../board";
 import type { Z } from "../help/reckon";
-import { isShiftDown, type Handle } from "./handle";
+import { isShiftDown } from "../key";
+import { type Handle } from "./handle";
 
 export type Eye = {
   zoom: { scale: number; navel: Z<"canvas"> };

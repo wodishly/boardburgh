@@ -10,6 +10,7 @@ export type GameState = {
   boardlist: Brick[];
   chosen: Maybe<Brick>;
   ids: number;
+  isLeeching: boolean;
 };
 
 export const makeGameState = (): GameState => {
@@ -19,6 +20,7 @@ export const makeGameState = (): GameState => {
     boardlist: [],
     chosen: undefined,
     ids: 0,
+    isLeeching: false,
   };
 };
 

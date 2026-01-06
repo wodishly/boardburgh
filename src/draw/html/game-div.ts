@@ -10,6 +10,7 @@ import { withCommas, type Z } from "../../help/reckon";
 import { type ElementWithId, makeWithId } from "./type";
 import { canvasToWorld, worldToCanvas } from "../brush";
 import { ringdeal } from "../canvas";
+import { getCanvas, type Game } from "../../game";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
   boardframeDiv: BoardframeDiv;
@@ -36,26 +37,34 @@ export const makeGameDiv = (gameState: GameState): GameDiv => {
   };
 };
 
-export const drawDebug = (handle: Handle, boardCanvas: BoardCanvas) => {
+export const drawDebug = (game: Game) => {
+  const handle = game.state.handle;
+  const boardCanvas = getCanvas(game);
   boardCanvas.context.font = `15px sans-serif`;
   boardCanvas.context.fillStyle = fg();
 
-  drawDebugOrd(
-    boardCanvas,
-    canvasToWorld(handle.mouse.z, boardCanvas.eye),
-    "mouse"
-  );
-  drawDebugOrd(
-    boardCanvas,
-    canvasToWorld(boardCanvas.eye.pan, boardCanvas.eye),
-    "0"
-  );
-  drawDebugOrd(
-    boardCanvas,
-    canvasToWorld({ x: 15, y: 15, kind: "canvas" as const }, boardCanvas.eye),
-    "0"
-  );
-  drawDebugOrd(boardCanvas, { x: 400, y: 200, kind: "world" as const }, "ord");
+  if (game.state.isLeeching) {
+    drawDebugOrd(
+      boardCanvas,
+      canvasToWorld(handle.mouse.z, boardCanvas.eye),
+      "mouse"
+    );
+    drawDebugOrd(
+      boardCanvas,
+      canvasToWorld(boardCanvas.eye.pan, boardCanvas.eye),
+      "0"
+    );
+    drawDebugOrd(
+      boardCanvas,
+      canvasToWorld({ x: 15, y: 15, kind: "canvas" as const }, boardCanvas.eye),
+      "0"
+    );
+    drawDebugOrd(
+      boardCanvas,
+      { x: 400, y: 200, kind: "world" as const },
+      "ord"
+    );
+  }
 };
 
 export const drawDebugOrd = (
