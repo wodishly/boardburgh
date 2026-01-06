@@ -41,12 +41,12 @@ export type Brick<
     choose: S extends Chosen ? BrickChoose : undefined;
   };
 
-export type Winkle = number;
+type Winkle = number;
 
 type BrickChoose = {
-  brickZ: Z<"canvas">;
-  brickW: Winkle;
-  clickZ: Z<"canvas">;
+  brickZ: Z<"canvas">; // starting z
+  brickW: Winkle; // starting winkle
+  clickZ: Z<"canvas">; // z of mouse click
 };
 
 export const isBrickState = (x: unknown): x is Brickstate => {
@@ -219,13 +219,6 @@ const handleSnap = (game: Game, brick: Brick<Chosen>) => {
   }
 
   if (someNeighbor && allDoWeave) {
-    //
-    //  if (
-    //    Object.values(neighbors).some((neighbor) => neighbor) &&
-    //    Object.values(neighbors).every(
-    //      (neighbor) => !neighbor || doesWeave(brick, neighbor)
-    //    )
-    //  ) {
     brick.isSnapped = true;
     if (neighbors.east) {
       brick.z = {
@@ -257,6 +250,7 @@ const handleSnap = (game: Game, brick: Brick<Chosen>) => {
   }
   brick.neighbors = neighbors;
 };
+
 /**
  * `wayTo(x, y) = z` iff `x` is `z` of `y`.
  */
