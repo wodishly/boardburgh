@@ -1,6 +1,5 @@
 import {
   hasChurch,
-  hasCity,
   hasCurvedRoad,
   hasRoad,
   hasShield,
@@ -14,7 +13,6 @@ import {
   withSpaces,
   zLerp,
   zTimes,
-  type WithSpaces,
   type ZKind,
 } from "../help/reckon";
 import { swap } from "../help/type";
@@ -257,9 +255,9 @@ export const drawSVGBrickshape = (
     case 0:
       if (hasChurch(brickname)) {
         svg.append(
-          makeSVGElement("circle", {
+          makeSVGElement("path", {
             ...toSvgBrush(Brushwit.church),
-            ...ringToSVGCircle(reckonChurch(brickname, svgFrame())),
+            ...nookfulToSVGPath(reckonChurch(brickname, svgFrame())),
           })
         );
       }

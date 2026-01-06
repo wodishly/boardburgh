@@ -12,8 +12,8 @@ import {
   wayPlus,
   type Wayname,
 } from "../help/way";
-import { zTimes, z, type ZKind } from "../help/reckon";
-import { type Plus } from "../help/rime";
+import { zTimes, z, type ZKind, toXY } from "../help/reckon";
+import { flight, type Plus } from "../help/rime";
 import { type Override, sameshift } from "../help/type";
 import { Settings } from "../settings";
 import {
@@ -104,15 +104,14 @@ export const reckonTown = <K extends ZKind>(
 export const reckonChurch = <K extends ZKind>(
   brickname: Church,
   bricknooks: Rectangle<K>
-): Ring<K> => {
-  return {
-    navel: {
-      x: bricknooks.x + bricknooks.width / 2,
-      y: bricknooks.y + bricknooks.height / 2,
-      kind: bricknooks.kind,
-    },
-    halfwidth: (bricknooks.width + bricknooks.height) / 2 / 2 / 2,
-  };
+): Nookful<K, 8> => {
+  return sameshift(flight(8), (n) =>
+    toXY(
+      (bricknooks.width + bricknooks.height) / 2 / 2 / 2,
+      ((n - 1 / 2) * (Math.PI * 2)) / 8,
+      bricknooks.kind
+    )
+  );
 };
 
 export const reckonShield = <K extends "canvas" | "svg">(

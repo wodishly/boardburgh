@@ -4,9 +4,6 @@
   - understand why `withBorrowedContext` makes things offset inside the `CanvasDraw` call
 - brick
   - crrf
-- snapping
-  - more than one neighbor
-  - freezing when neighborful but not snapped
 - handle
   - mousedowns and mouseups are sometimes dont respond,
     maybe has to do with not checking the resulting state until the next frame

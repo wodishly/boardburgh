@@ -2,6 +2,7 @@ import type { Brush } from "./draw/brush";
 
 export const Settings = {
   brickLength: 128,
+  neighborThreshold: 1 / 8,
   draw: {
     roadHalfwidth: 0.15,
   },

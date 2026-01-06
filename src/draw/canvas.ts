@@ -465,13 +465,10 @@ export const drawCityToCanvas = (
           context,
           { brush: Brushwit.church, wend },
           (context) => {
-            context.arc(
-              church.navel.x,
-              church.navel.y,
-              church.halfwidth,
-              0,
-              2 * Math.PI
-            );
+            context.moveTo(church[0].x, church[0].y);
+            for (let i = 1; i < church.length; i++) {
+              context.lineTo(church[i].x, church[i].y);
+            }
           }
         );
       }
@@ -495,7 +492,13 @@ export const drawShieldToCanvas = (
       context,
       { brush: Brushwit.shield, wend },
       (context) => {
-        context.rect(shield.x, shield.y, shield.width, shield.height);
+        context.roundRect(
+          shield.x,
+          shield.y,
+          shield.width,
+          shield.height,
+          (shield.rx + shield.ry) / 2
+        );
       }
     );
   }

@@ -1,6 +1,6 @@
 import { mod, type ZKind } from "./reckon";
 import { type Modulo, type Next, type Plus } from "./rime";
-import { type Thaw, type Override } from "./type";
+import { type Thaw, type Override, type Wayward } from "./type";
 
 export const Waybook = ["east", "north", "west", "south"] as const;
 
@@ -124,9 +124,19 @@ export const toFarthing = (way: Wayname, kind: ZKind) => {
   );
 };
 
-const fromFarthing = (winkle: number): Waytell => {
-  const tell = winkle / (Math.PI / 2);
-  if (tell === 0 || tell === 1 || tell === 2 || tell === 3) {
-    return tell;
-  } else throw new Error(`bad tell ${tell}`);
+// unused
+// const fromFarthing = (winkle: number): Waytell => {
+//   const tell = winkle / (Math.PI / 2);
+//   if (tell === 0 || tell === 1 || tell === 2 || tell === 3) {
+//     return tell;
+//   } else throw new Error(`bad tell ${tell}`);
+// };
+
+export const makeWayward = <T>(f: (n: number) => T): Wayward<T> => {
+  return {
+    east: f(0),
+    north: f(1),
+    west: f(2),
+    south: f(3),
+  };
 };
