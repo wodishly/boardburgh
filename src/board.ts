@@ -12,7 +12,7 @@ import {
 } from "./draw/html/type";
 import { Settings } from "./settings";
 import { makeEye, resize, type Eye } from "./draw/eye";
-import { isWaytell, waynameOf, wayPlus, waytellOf } from "./help/way";
+import { isWaytell, waynameOf, wayPlus } from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
   drawCityToCanvas,
@@ -27,7 +27,7 @@ import { drawDebug, drawDebugOrd, fg } from "./draw/html/game-div";
 import { withCommas, z } from "./help/reckon";
 import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
-import { ly, type Maybe } from "./help/type";
+import { type Maybe } from "./help/type";
 import { isChosen } from "./state";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {

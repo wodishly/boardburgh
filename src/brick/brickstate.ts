@@ -7,13 +7,7 @@ import {
   type Maybe,
   type Wayward,
 } from "../help/type";
-import {
-  isWaytell,
-  waynameOf,
-  wayNext,
-  wayPlus,
-  type Wayname,
-} from "../help/way";
+import { isWaytell, waynameOf, wayPlus, type Wayname } from "../help/way";
 import { isMouseInBrick, doesWeave } from "../board";
 import { getEye, getMouse, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
@@ -38,9 +32,10 @@ export type Brick<
     boardId: BoardId;
     farthings: S extends "spin" ? number : 0 | 1 | 2 | 3;
     neighbors: S extends Cold
-      ? Wayward<Brick<Brickname, Brickstate>>
+      ? Wayward<Maybe<Brick<Brickname, Brickstate>>>
+      : S extends OnBoard
+      ? Maybe<Wayward<Maybe<Brick<Brickname, Brickstate>>>>
       : undefined;
-    // isSnapped: S extends Cold ? true : S extends "fresh" ? false : boolean;
     state: S;
     choose: S extends Chosen ? BrickChoose : undefined;
   };
@@ -114,7 +109,13 @@ export const handleBrick = (game: Game, brick: Brick) => {
       game.state.boardlist.push(game.state.chosen);
       game.state.chosen = undefined;
     }
-    brick.state = brick.neighbors ? "frozen" : "hover2";
+    brick.state =
+      brick.neighbors?.east ||
+      brick.neighbors?.north ||
+      brick.neighbors?.west ||
+      brick.neighbors?.south
+        ? "frozen"
+        : "hover2";
   } else if (brick.state === "drag" && mouse.state === "mousedown") {
     brick.state = "drop";
   } else if (brick.state === "spin" && mouse.state === "mouseup") {
@@ -211,23 +212,23 @@ const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
     ) {
       other.state = "nearby";
       neighbors[wayTo(brick, other)] = other;
-      console.log(brick, `is ${wayTo(brick, other)} of`, other);
-      console.log(
-        `brick is spun ${brick.farthings} times`,
-        `other is spun ${other.farthings} times`
-      );
-      if (isWaytell(brick.farthings)) {
-        console.log(
-          `brick's ${wayPlus(wayTo(other, brick), waynameOf(brick.farthings))}`,
-          `is touching`,
-          `other's ${wayPlus(wayTo(brick, other), waynameOf(other.farthings))}`
-        );
-        console.log(
-          brick.edges[wayPlus(wayTo(other, brick), waynameOf(brick.farthings))],
-          `is touching`,
-          other.edges[wayPlus(wayTo(brick, other), waynameOf(other.farthings))]
-        );
-      }
+      // console.log(brick, `is ${wayTo(brick, other)} of`, other);
+      // console.log(
+      //   `brick is spun ${brick.farthings} times`,
+      //   `other is spun ${other.farthings} times`
+      // );
+      // if (isWaytell(brick.farthings)) {
+      //   console.log(
+      //     `brick's ${wayPlus(wayTo(other, brick), waynameOf(brick.farthings))}`,
+      //     `is touching`,
+      //     `other's ${wayPlus(wayTo(brick, other), waynameOf(other.farthings))}`
+      //   );
+      //   console.log(
+      //     brick.edges[wayPlus(wayTo(other, brick), waynameOf(brick.farthings))],
+      //     `is touching`,
+      //     other.edges[wayPlus(wayTo(brick, other), waynameOf(other.farthings))]
+      //   );
+      // }
       if (
         neighbors.east &&
         neighbors.north &&
@@ -273,6 +274,7 @@ const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
       throw new Error("bad neighbor");
     }
   }
+  brick.neighbors = neighbors;
 };
 /**
  * `wayTo(x, y) = z` iff `x` is `z` of `y`.
