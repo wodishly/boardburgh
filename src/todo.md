@@ -2,6 +2,8 @@
   - make deckframe a canvas object
   - make bricks spawn on deckframe and have two hover states
   - understand why `withBorrowedContext` makes things offset inside the `CanvasDraw` call
+- brick
+  - crrf
 - snapping
   - more than one neighbor
   - freezing when neighborful but not snapped
@@ -13,5 +15,3 @@
   - zoom
 - meeples
 - other screens / devices
-- crrf brick being weird
-  - idk what this means

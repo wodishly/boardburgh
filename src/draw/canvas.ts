@@ -219,15 +219,23 @@ export const drawRoadToCanvas = (
             (nookZ.x * brickframe.width) / 2,
             (nookZ.y * brickframe.height) / 2,
             halfwidths[0],
-            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[0]))),
-            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[1])))
+            (Math.PI / 2) *
+              (2 * +(edgetells[0] === 1) +
+                waytellOf(wayNext(waynameOf(edgetells[0])))),
+            (Math.PI / 2) *
+              (2 * +(edgetells[0] === 1) +
+                waytellOf(wayNext(waynameOf(edgetells[1]))))
           );
           context.arc(
             (nookZ.x * brickframe.width) / 2,
             (nookZ.y * brickframe.height) / 2,
             halfwidths[1],
-            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[1]))),
-            (Math.PI / 2) * waytellOf(wayNext(waynameOf(edgetells[0]))),
+            (Math.PI / 2) *
+              (2 * +(edgetells[0] === 1) +
+                waytellOf(wayNext(waynameOf(edgetells[1])))),
+            (Math.PI / 2) *
+              (2 * +(edgetells[0] === 1) +
+                waytellOf(wayNext(waynameOf(edgetells[0])))),
             true
           );
         }

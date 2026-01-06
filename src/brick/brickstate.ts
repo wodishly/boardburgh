@@ -7,7 +7,7 @@ import {
   type Maybe,
   type Wayward,
 } from "../help/type";
-import { isWaytell, waynameOf, wayPlus, type Wayname } from "../help/way";
+import { type Wayname } from "../help/way";
 import { isMouseInBrick, doesWeave } from "../board";
 import { getEye, getMouse, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
@@ -36,6 +36,7 @@ export type Brick<
       : S extends OnBoard
       ? Maybe<Wayward<Maybe<Brick<Brickname, Brickstate>>>>
       : undefined;
+    isSnapped: S extends Cold ? true : S extends "fresh" ? false : boolean;
     state: S;
     choose: S extends Chosen ? BrickChoose : undefined;
   };
@@ -92,7 +93,7 @@ export const makeWayward = <T>(f: (n: number) => T): Wayward<T> => {
 export const freeze = (brick: Brick) => {
   brick.state = "frozen";
   brick.choose = undefined;
-  // brick.isSnapped = true;
+  brick.isSnapped = true;
 };
 
 // todo: scale with screen
@@ -109,13 +110,7 @@ export const handleBrick = (game: Game, brick: Brick) => {
       game.state.boardlist.push(game.state.chosen);
       game.state.chosen = undefined;
     }
-    brick.state =
-      brick.neighbors?.east ||
-      brick.neighbors?.north ||
-      brick.neighbors?.west ||
-      brick.neighbors?.south
-        ? "frozen"
-        : "hover2";
+    brick.state = brick.isSnapped ? "frozen" : "hover2";
   } else if (brick.state === "drag" && mouse.state === "mousedown") {
     brick.state = "drop";
   } else if (brick.state === "spin" && mouse.state === "mouseup") {
@@ -197,7 +192,7 @@ const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
     // brick.drag.panOffset.y,
     kind: "world",
   };
-  // brick.isSnapped = false;
+  brick.isSnapped = false;
   const neighbors: Wayward<Maybe<Brick>> = makeWayward(() => undefined);
   for (const other of boardlist) {
     const dz = zTimes(zMinus(brick.z, other.z), 1 / Settings.brickLength);
@@ -245,7 +240,7 @@ const handleDrag = (game: Game, brick: Brick<Brickname, Chosen>) => {
       (neighbor) => !neighbor || doesWeave(brick, neighbor)
     )
   ) {
-    // brick.isSnapped = true;
+    brick.isSnapped = true;
     if (neighbors.east) {
       brick.z = {
         x: neighbors.east.z.x + Settings.brickLength,
