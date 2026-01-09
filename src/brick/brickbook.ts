@@ -1,29 +1,29 @@
 /**
- * 'c': "city"
+ * 'b': "burgh"
  * 'f': "field"
  * 'r': "road"
  * 's': "shield"
  * '#': "#-piece variant"
  */
 export const Brickbook = {
-  ccccs: 1,
-  cccfs: 1,
-  cccf: 3,
-  cccrs: 2,
-  cccr: 1,
-  ccff: 3,
-  ccffs: 2,
-  cffc: 2,
-  ccrr: 3,
-  ccrrs: 2,
-  cfcf: 3,
-  cfcf2s: 2,
-  cfcf2: 1,
-  cfff: 5,
-  cfrr: 3,
-  crfr: 3,
-  crrf: 3,
-  crrr: 3,
+  bbbbs: 1,
+  bbbfs: 1,
+  bbbf: 3,
+  bbbrs: 2,
+  bbbr: 1,
+  bbff: 3,
+  bbffs: 2,
+  bffb: 2,
+  bbrr: 3,
+  bbrrs: 2,
+  bfbf: 3,
+  bfbf2s: 2,
+  bfbf2: 1,
+  bfff: 5,
+  bfrr: 3,
+  brfr: 3,
+  brrf: 3,
+  brrr: 3,
   ffff: 4,
   fffr: 2,
   ffrr: 9,

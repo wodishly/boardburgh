@@ -1,17 +1,18 @@
-import { isBrickname } from "../../brick/brickname";
-import { dealBrick, runTally, type Tally } from "../../brick/deck";
-import type { GameState } from "../../state";
-import { type Knobful, makeKnob } from "./knob";
-import { makeSVGToken } from "../svg";
+import { isBrickname } from "../../../../brick/brickname";
+import { dealBrick, runTally, type Tally } from "../../../../brick/deck";
+import type { GameState } from "../../../../state";
+import { type Knobful, makeKnob } from "../../knob";
+import { makeSVGToken } from "../../../svg";
 import {
   type Elementful,
   type ElementWithId,
   type HTMLMake,
   makeWithId,
   unchildAll,
-} from "./type";
+} from "../../type";
+import { makeSlab, type Slab } from "./slab";
 
-export type DeckframeDiv = ElementWithId<"div", "deckframe"> & {
+export type Deckslab = Slab<"deckslab"> & {
   laveSpan: LaveSpan;
   tallyDiv: TallyDiv;
   dealDiv: DealDiv;
@@ -27,8 +28,8 @@ export type TallyUl = Elementful<"ul">;
 
 export type DealDiv = ElementWithId<"div", "deal">;
 
-export const makeDeckframeDiv: HTMLMake<DeckframeDiv> = (gameState) => {
-  const deckframeDiv = makeWithId("div", "deckframe" as const);
+export const makeDeckslab: HTMLMake<Deckslab> = (gameState) => {
+  const deckslab = makeSlab<"deckslab">(gameState, "deckslab", "");
 
   const laveSpan = makeWithId("span", "lave" as const);
   const tallyDiv = makeTallyDiv(gameState);
@@ -36,16 +37,16 @@ export const makeDeckframeDiv: HTMLMake<DeckframeDiv> = (gameState) => {
 
   const dealKnob = makeKnob(gameState, "deal", () => {
     dealBrick(gameState, 0);
-    updateDeckframeWith(gameState, laveSpan, tallyDiv, runTally(gameState));
+    updateDeckslabWith(gameState, laveSpan, tallyDiv, runTally(gameState));
   });
-  deckframeDiv.element.append(
+  deckslab.element.append(
     laveSpan.element,
     tallyDiv.element,
     dealDiv.element,
     dealKnob.element
   );
 
-  return { ...deckframeDiv, laveSpan, tallyDiv, dealDiv, dealKnob };
+  return { ...deckslab, laveSpan, tallyDiv, dealDiv, dealKnob };
 };
 
 export const makeTallyDiv: HTMLMake<TallyDiv> = (_) => {
@@ -53,7 +54,7 @@ export const makeTallyDiv: HTMLMake<TallyDiv> = (_) => {
   return { ...tallyDiv, tallyUls: [] };
 };
 
-export const updateDeckframeWith = (
+export const updateDeckslabWith = (
   _: GameState,
   laveSpan: LaveSpan,
   tallyDiv: TallyDiv,

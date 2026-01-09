@@ -280,18 +280,18 @@ export const drawRoadToCanvas = (
   }
 };
 
-export const drawCityToCanvas = (
+export const drawBurghToCanvas = (
   context: CanvasRenderingContext2D,
   wend: CanvasWend,
   brickframe: Rectangle<"canvas">,
   brickname: Brickname
 ) => {
-  const edgetells = edgetellsOf(brickname, "c");
+  const edgetells = edgetellsOf(brickname, "b");
   switch (edgetells.length) {
     case 4:
       withBorrowedContext(
         context,
-        { brush: Brushwit.city, wend },
+        { brush: Brushwit.burgh, wend },
         (context) => {
           context.rect(
             -brickframe.width / 2,
@@ -305,7 +305,7 @@ export const drawCityToCanvas = (
     case 3:
       withBorrowedContext(
         context,
-        { brush: Brushwit.city, wend },
+        { brush: Brushwit.burgh, wend },
         (context) => {
           const startNook = toNookZ(waynameOf(0));
           context.moveTo(
@@ -352,7 +352,7 @@ export const drawCityToCanvas = (
       if ((edgetells[1] - edgetells[0]) % 2 === 0) {
         withBorrowedContext(
           context,
-          { brush: Brushwit.city, wend },
+          { brush: Brushwit.burgh, wend },
           (context) => {
             const startNook = toNookZ(waynameOf(0));
             context.moveTo(
@@ -402,7 +402,7 @@ export const drawCityToCanvas = (
       } else {
         withBorrowedContext(
           context,
-          { brush: Brushwit.city, wend },
+          { brush: Brushwit.burgh, wend },
           (context) => {
             const nooks =
               edgetells[0] === 0 && edgetells[1] === 3
@@ -441,7 +441,7 @@ export const drawCityToCanvas = (
       };
       withBorrowedContext(
         context,
-        { brush: Brushwit.city, wend },
+        { brush: Brushwit.burgh, wend },
         (context) => {
           context.arc(
             navel.x,

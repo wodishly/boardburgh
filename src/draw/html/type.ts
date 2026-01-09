@@ -1,6 +1,7 @@
 import type { Game } from "../../game";
 import type { KnobId } from "./knob";
 import type { GameState } from "../../state";
+import type { SlabId } from "./div/slab/slab";
 
 export type HTMLKey = keyof HTMLElementTagNameMap;
 type HTMLValue<K extends HTMLKey = HTMLKey> = HTMLElementTagNameMap[K];
@@ -8,18 +9,32 @@ export type HTMLId =
   | "game"
   | "boardframe"
   | "board"
-  | "deckframe"
+  | "deckslab"
   | "tally"
   | "lave"
   | "deal"
+  | "friendslab"
+  | "house"
   | KnobId
+  | SlabId
   | undefined;
 export type HTMLClass = "brick";
 
 type Idful<I extends HTMLId = HTMLId> = { id: I };
+export const hasId = (x: object): x is Idful => {
+  return "id" in x;
+};
+
 type Classful<C extends HTMLClass = HTMLClass> = { classes: C[] };
+export const hasClass = (x: object): x is Classful => {
+  return "class" in x;
+};
 
 export type Elementful<K extends HTMLKey = HTMLKey> = { element: HTMLValue<K> };
+export const hasElement = (x: object): x is Elementful => {
+  return "element" in x;
+};
+
 export type ElementWithId<
   K extends HTMLKey = HTMLKey,
   I extends HTMLId = HTMLId

@@ -3,13 +3,14 @@ import type { Brush } from "./draw/brush";
 export const Settings = {
   brickLength: 128,
   neighborThreshold: 1 / 8,
+  friendTell: 7,
   draw: {
     roadHalfwidth: 0.15,
   },
 } as const;
 
 export const Brushwit = {
-  city: { fillColor: "peru", strokeColor: "sienna" },
+  burgh: { fillColor: "peru", strokeColor: "sienna" },
   field: { fillColor: "lightgreen", strokeColor: "lightgreen" },
   road: { fillColor: "yellow", strokeColor: "brown" },
   shield: { fillColor: "#88f", strokeColor: "#eef" },

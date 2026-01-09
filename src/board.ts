@@ -15,7 +15,7 @@ import { makeEye, resize, type Eye } from "./draw/eye";
 import { isWaytell, waynameOf, wayPlus } from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
-  drawCityToCanvas,
+  drawBurghToCanvas,
   drawFieldToCanvas,
   drawRoadToCanvas,
   drawShieldToCanvas,
@@ -23,13 +23,17 @@ import {
   withBorrowedContext,
   withBorrowedContextForText,
 } from "./draw/canvas";
-import { drawDebug, drawDebugOrd, fg } from "./draw/html/game-div";
+import { drawDebug, drawDebugOrd, fg } from "./draw/html/div/div";
 import { withCommas, z } from "./help/reckon";
 import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
 import { type Maybe } from "./help/type";
-import { isChosen } from "./state";
+import { isChosen, type GameState } from "./state";
 import { updateHandle } from "./draw/handle";
+import { makeSlab, updateSlabs, type Slab } from "./draw/html/div/slab/slab";
+import { makeDeckslab, type Deckslab } from "./draw/html/div/slab/deckslab";
+import { makeFriendslab } from "./draw/html/div/slab/friendslab";
+import { makeWorthslab } from "./draw/html/div/slab/worthslab";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {
   context: CanvasRenderingContext2D;
@@ -38,36 +42,81 @@ export type BoardCanvas = ElementWithId<"canvas", "board"> & {
 
 export type BoardframeDiv = ElementWithId<"div", "boardframe"> & {
   boardCanvas: BoardCanvas;
+  slabs: {
+    keyslab: Slab<"keyslab">;
+    deckslab: Deckslab;
+    friendslab: Slab<"friendslab">;
+    worthslab: Slab<"worthslab">;
+  };
 };
 
 export const makeBoardframeDiv: HTMLMake<BoardframeDiv> = (gameState) => {
-  const almostBoardDiv = makeWithId("div", "boardframe" as const);
+  const almostBoardframeDiv = makeWithId("div", "boardframe" as const);
 
   const almostBoardCanvas = makeWithId("canvas", "board" as const);
-  almostBoardDiv.element.append(almostBoardCanvas.element);
+  almostBoardframeDiv.element.append(almostBoardCanvas.element);
 
   const context = almostBoardCanvas.element.getContext("2d");
   if (!context) throw new Error("bad context");
 
   const eye = makeEye(gameState.handle, almostBoardCanvas);
 
-  const boardCanvas = { ...almostBoardCanvas, context, eye };
+  const slabs = {
+    keyslab: makeKeyslab(gameState),
+    deckslab: makeDeckslab(gameState),
+    friendslab: makeFriendslab(gameState),
+    worthslab: makeWorthslab(gameState),
+  };
+  for (const slab of Object.values(slabs)) {
+    almostBoardframeDiv.element.append(slab.element);
+  }
+
+  const boardCanvas = {
+    ...almostBoardCanvas,
+    context,
+    eye,
+  };
 
   resize(boardCanvas);
 
   return {
-    ...almostBoardDiv,
+    ...almostBoardframeDiv,
     boardCanvas,
+    slabs: slabs,
   };
+};
+
+const makeKeyslab = (gameState: GameState) => {
+  return makeSlab(
+    gameState,
+    "keyslab",
+    "<h4>world</h4>" +
+      "<ul>" +
+      "<li><kbd>l</kbd> for leechsight</li>" +
+      "</ul>" +
+      "<h4>brick</h4>" +
+      "<ul>" +
+      "<li><strong>click</strong> to pick up or drop the brick</li>" +
+      "<li><strong>click and drag</strong> to spin the brick</li>" +
+      "<li><kbd>Shift</kbd></strong> to turn off snapping</li>" +
+      "</ul>" +
+      "<h4>slab</h4>" +
+      "<ul>" +
+      "<li><strong>click and drag</strong> to slide the slab</li>" +
+      "</ul>"
+  );
 };
 
 export const isMouseInBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
   const worldZ = canvasToWorld(mouse.z, game.div.boardframeDiv.boardCanvas.eye);
-  return (
+  const outcome =
     Math.abs(brick.z.x - worldZ.x) < Settings.brickLength / 2 &&
-    Math.abs(brick.z.y - worldZ.y) < Settings.brickLength / 2
-  );
+    Math.abs(brick.z.y - worldZ.y) < Settings.brickLength / 2;
+  if (outcome) {
+    mouse.layer.push("brick");
+  }
+  return outcome;
 };
 
 export const doesWeave = (brick: Brick, other: Brick) => {
@@ -80,12 +129,15 @@ export const doesWeave = (brick: Brick, other: Brick) => {
 };
 
 export const updateBoard = (game: Game, now: number) => {
-  updateHandle(game, now);
+  updateSlabs(game, now);
+
   for (const thing of [...game.state.boardlist, game.state.chosen].reverse()) {
     if (isBrick(thing)) {
       handleBrick(game, thing);
     }
   }
+
+  updateHandle(game, now);
 };
 
 export const drawBoard = (game: Game) => {
@@ -98,8 +150,13 @@ export const drawBoard = (game: Game) => {
       throw new Error("bad thing");
     }
   }
-  drawChosen(game, game.state.chosen);
-  drawDebug(game)
+  if (isBrick(game.state.chosen)) {
+    drawChosen(game, game.state.chosen);
+  }
+  // for (let i = 0; i < canvas.slabDivs.length; i++) {
+  //   drawSlab(game, canvas.slabDivs[i]);
+  // }
+  drawDebug(game);
 };
 
 const drawChosen = (game: Game, chosen: Maybe<Brick>) => {
@@ -135,23 +192,8 @@ const drawBrick = (game: Game, brick: Brick) => {
 
   drawFieldToCanvas(canvas.context, wend, brickframe);
   drawRoadToCanvas(canvas.context, wend, brickframe, brick.brickname);
-  drawCityToCanvas(canvas.context, wend, brickframe, brick.brickname);
+  drawBurghToCanvas(canvas.context, wend, brickframe, brick.brickname);
   drawShieldToCanvas(canvas.context, wend, brickframe, brick.brickname);
-
-  if (isInState(brick, "spin")) {
-    drawDebugOrd(canvas, canvasToWorld(wend.navel, canvas.eye), "wend");
-    withBorrowedContext(
-      canvas.context,
-      { brush: { fillColor: fg() }, wend: undefined },
-      (context) => {
-        context.moveTo(brick.choose.clickZ.x, brick.choose.clickZ.y);
-        context.lineTo(
-          game.state.handle.mouse.z.x,
-          game.state.handle.mouse.z.y
-        );
-      }
-    );
-  }
 
   withBorrowedContext(
     canvas.context,
@@ -167,6 +209,20 @@ const drawBrick = (game: Game, brick: Brick) => {
   );
 
   if (game.state.isLeeching) {
+    if (isInState(brick, "spin")) {
+      drawDebugOrd(canvas, canvasToWorld(brick.choose.clickZ, canvas.eye), "wend");
+      withBorrowedContext(
+        canvas.context,
+        { brush: { fillColor: fg() }, wend: undefined },
+        (context) => {
+          context.moveTo(brick.choose.clickZ.x, brick.choose.clickZ.y);
+          context.lineTo(
+            game.state.handle.mouse.z.x,
+            game.state.handle.mouse.z.y
+          );
+        }
+      );
+    }
     withBorrowedContextForText(
       canvas.context,
       {

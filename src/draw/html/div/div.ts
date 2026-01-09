@@ -1,21 +1,34 @@
-import { makeDeckframeDiv, type DeckframeDiv } from "./deckframe-div";
-import type { GameState } from "../../state";
+import { makeDeckslab, type Deckslab } from "./slab/deckslab";
+import type { GameState } from "../../../state";
 import {
   type BoardCanvas,
   type BoardframeDiv,
   makeBoardframeDiv,
-} from "../../board";
-import { wakeHandle, type Handle } from "../handle";
-import { withCommas, type Z } from "../../help/reckon";
-import { type ElementWithId, makeWithId } from "./type";
-import { canvasToWorld, worldToCanvas } from "../brush";
-import { ringdeal } from "../canvas";
-import { getCanvas, type Game } from "../../game";
+} from "../../../board";
+import { wakeHandle } from "../../handle";
+import { withCommas, type Z } from "../../../help/reckon";
+import { type ElementWithId, makeWithId } from "../type";
+import { canvasToWorld, worldToCanvas } from "../../brush";
+import { ringdeal } from "../../canvas";
+import { getCanvas, type Game } from "../../../game";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
   boardframeDiv: BoardframeDiv;
-  deckframeDiv: DeckframeDiv;
+  url: typeof window.URL | typeof window.webkitURL; // | typeof window;
   isDark: boolean;
+};
+
+export const makeUrl = () => {
+  if (window.URL) {
+    // console.log("window.URL");
+    return window.URL;
+  } else if (window.webkitURL) {
+    // console.log("window.webkitURL");
+    return window.webkitURL;
+  } else {
+    throw new Error("bad url");
+    // return window;
+  }
 };
 
 export const makeGameDiv = (gameState: GameState): GameDiv => {
@@ -23,16 +36,14 @@ export const makeGameDiv = (gameState: GameState): GameDiv => {
 
   const boardframeDiv = makeBoardframeDiv(gameState);
   wakeHandle(gameState.handle, boardframeDiv.boardCanvas);
-
-  const deckframeDiv = makeDeckframeDiv(gameState);
-  almostGameDiv.element.append(boardframeDiv.element, deckframeDiv.element);
+  almostGameDiv.element.append(boardframeDiv.element);
 
   document.body.insertBefore(almostGameDiv.element, document.body.firstChild);
 
   return {
     ...almostGameDiv,
     boardframeDiv,
-    deckframeDiv,
+    url: makeUrl(),
     isDark: bg() === "black",
   };
 };

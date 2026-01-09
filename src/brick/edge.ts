@@ -12,15 +12,15 @@ import {
 } from "./brickname";
 import type { Waytell } from "../help/way";
 
-export const Edgebook = ["city", "field", "road"] as const;
+export const Edgebook = ["burgh", "field", "road"] as const;
 
-export type Edgestaff = "c" | "f" | "r";
+export type Edgestaff = "b" | "f" | "r";
 
 export const isEdgestaff = (x: unknown): x is Edgestaff =>
-  x === "c" || x === "f" || x === "r";
+  x === "b" || x === "f" || x === "r";
 
-export type Edgename<S extends Edgestaff> = S extends "c"
-  ? "city"
+export type Edgename<S extends Edgestaff> = S extends "b"
+  ? "burgh"
   : S extends "f"
   ? "field"
   : S extends "r"
@@ -28,12 +28,12 @@ export type Edgename<S extends Edgestaff> = S extends "c"
   : never;
 
 export const isEdgename = <S extends Edgestaff>(x: unknown): x is Edgename<S> =>
-  x === "city" || x === "field" || x === "road";
+  x === "burgh" || x === "field" || x === "road";
 
 export const edgestaffToName = <S extends Edgestaff>(staff: S): Edgename<S> => {
   switch (staff) {
-    case "c":
-      return "city" as Override<Edgename<S>>;
+    case "b":
+      return "burgh" as Override<Edgename<S>>;
     case "f":
       return "field" as Override<Edgename<S>>;
     case "r":

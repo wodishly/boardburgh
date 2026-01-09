@@ -5,6 +5,7 @@
 - brick
   - crrf
 - snap needs to check if there is already a brick there
+- spinning is totally broken
 - handle
   - mousedowns and mouseups are sometimes dont respond,
     maybe has to do with not checking the resulting state until the next frame

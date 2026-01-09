@@ -1,7 +1,7 @@
 import type { BoardCanvas } from "../board";
 import type { Game } from "../game";
 import type { Zful } from "../help/reckon";
-import type { Override } from "../help/type";
+import type { Maybe } from "../help/type";
 import {
   makeEater,
   updateEater,
@@ -12,35 +12,48 @@ import {
 } from "../key";
 import { resize } from "./eye";
 
-type MouseState = "mousedown" | "mouseup" | "mousemove" | undefined;
-type WheelState = "wheel" | undefined;
-
-type Witstate = MouseState | WheelState;
-
-type Wit<S extends Witstate> = Zful<"canvas"> & {
-  state: S;
+export type Mouse = Zful<"canvas"> & {
+  move: Maybe<"mousemove">;
+  knob: Maybe<"mousedown" | "mouseup">;
+  wheel: Wheel;
+  layer: MouseLayer[];
 };
 
-export type Wheelwit = Wit<WheelState>;
+export type MouseLayer = "slab" | "friend" | "brick";
 
-export type Mousewit = Wit<MouseState>;
+export type Wheel = Zful<"canvas"> & {
+  state: Maybe<"wheel">;
+};
 
 export type Handle = {
-  mouse: Mousewit;
-  wheel: Wheelwit;
+  mouse: Mouse;
   eater: KeyEater;
 };
 
 export const makeHandle = (): Handle => {
   return {
-    mouse: { z: { x: 0, y: 0, kind: "canvas" }, state: undefined },
-    wheel: { z: { x: 0, y: 0, kind: "canvas" }, state: undefined },
+    mouse: {
+      z: { x: 0, y: 0, kind: "canvas" },
+      move: undefined,
+      knob: undefined,
+      wheel: { z: { x: 0, y: 0, kind: "canvas" }, state: undefined },
+      layer: [],
+    },
     eater: makeEater(),
   };
 };
 
 export const updateHandle = (game: Game, now: number) => {
   updateEater(game, now);
+  game.state.handle.mouse.move = undefined;
+  game.state.handle.mouse.layer.length = 0;
+};
+
+export const addListener = <K extends keyof WindowEventMap>(
+  type: K,
+  listener: (event: WindowEventMap[K]) => void
+) => {
+  window.addEventListener(type, listener);
 };
 
 export const wakeHandle = (
@@ -51,28 +64,20 @@ export const wakeHandle = (
     resize(boardCanvas);
   });
   window.addEventListener("mousedown", (e) => {
-    handle.mouse = {
-      z: { x: e.clientX, y: e.clientY, kind: "canvas" },
-      state: e.type as Override<"mousedown">,
-    };
+    handle.mouse.z = { x: e.clientX, y: e.clientY, kind: "canvas" };
+    handle.mouse.knob = "mousedown";
   });
   window.addEventListener("mouseup", (e) => {
-    handle.mouse = {
-      z: { x: e.clientX, y: e.clientY, kind: "canvas" },
-      state: e.type as Override<"mouseup">,
-    };
+    handle.mouse.z = { x: e.clientX, y: e.clientY, kind: "canvas" };
+    handle.mouse.knob = "mouseup";
   });
   window.addEventListener("mousemove", (e) => {
-    handle.mouse = {
-      z: { x: e.clientX, y: e.clientY, kind: "canvas" },
-      state: e.type as Override<"mousemove">,
-    };
+    handle.mouse.z = { x: e.clientX, y: e.clientY, kind: "canvas" };
+    handle.mouse.move = "mousemove";
   });
   window.addEventListener("wheel", (e) => {
-    handle.wheel = {
-      z: { x: e.deltaX, y: e.deltaY, kind: "canvas" },
-      state: e.type as Override<"wheel">,
-    };
+    handle.mouse.wheel.z = { x: e.deltaX, y: e.deltaY, kind: "canvas" };
+    handle.mouse.wheel.state = "wheel";
   });
   window.addEventListener("keydown", (e) => {
     if (isKeycode(e.code)) {

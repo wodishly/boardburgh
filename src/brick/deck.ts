@@ -19,7 +19,7 @@ export const makeDeck = (): Deck => {
 
 export const loadFrom = (
   brickbook: Tally,
-  start: Brickname = "crfr"
+  start: Brickname = "brfr"
 ): Brickshape[] => {
   const bricklist: Brickshape[] = [];
   const shuffledNames: Brickname[] = shuffle(

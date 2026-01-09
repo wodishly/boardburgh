@@ -18,7 +18,7 @@
     --fg: black;
     --mg: white;
     --bg: lightblue;
-    --dealDiv: lightgrey;
+    --inset: lightgrey;
   }
 }
 
@@ -27,7 +27,7 @@
     --fg: white;
     --mg: black;
     --bg: midnightblue;
-    --dealDiv: grey;
+    --inset: grey;
   }
 }
 
@@ -44,7 +44,8 @@ div#game {
 }
 
 div#boardframe,
-div#deckframe {
+div#deckslab,
+div#friendslab {
   position: absolute;
 }
 
@@ -52,18 +53,34 @@ canvas#board {
   margin: auto;
 }
 
-div#deckframe {
+.slab {
   position: absolute;
+  border: 2px solid var(--fg);
+  border-radius: 1rem;
+  padding: 1rem;
   background: var(--mg);
+  white-space: nowrap;
+  transition: 0.125s linear;
+}
+
+.slab * {
+  user-select: none;
+}
+
+.slab:hover {
+  cursor: grab;
+}
+
+.slab:active {
+  cursor: grabbing;
+}
+
+div#deckslab {
   left: 1rem;
   top: 2rem;
-  border: 2px solid var(--fg);
-  padding: 1rem;
-  border-radius: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: 0.2s;
 }
 
 span#lave {
@@ -100,13 +117,13 @@ div#tally ul li label {
 
 div#deal {
   border: 1px solid var(--fg);
-  background: var(--dealDiv);
+  background: var(--inset);
   width: 8rem;
   height: 8rem;
   margin: 1rem auto;
 }
 
-div#deckframe button {
+#deckslab button {
   background: var(--bg);
   border: 2px solid var(--fg);
   padding: 0.5rem;
@@ -115,18 +132,81 @@ div#deckframe button {
   transition: 0.2s;
 }
 
-div#deckframe button:hover {
+#deckslab button:hover {
   background: lightgrey;
   box-shadow: 0px 0px 4px inset black;
   cursor: pointer;
 }
 
-div#deckframe button:active {
+#deckslab button:active {
   background: grey;
 }
 
-svg {
+#deckslab svg {
   border: 1.5px solid var(--fg);
   border-radius: 0.5rem;
   stroke-width: 0.075;
+}
+
+#keyslab {
+  bottom: 1rem;
+  left: 1rem;
+}
+
+#keyslab ul {
+  padding: 0.5rem 1rem;
+}
+
+#keyslab li {
+  padding-bottom: 0.125rem;
+}
+
+#keyslab li strong {
+  display: inline-block;
+  padding-right: 0.25rem;
+}
+
+#friendslab {
+  top: 1rem;
+  right: 1rem;
+}
+
+div#friendslab h4,
+div#worthslab h4 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+div#friendslab div#house {
+  border: 1px solid var(--fg);
+  background: var(--inset);
+  width: 16rem;
+  height: 12rem;
+}
+
+div#worthslab {
+  bottom: 1rem;
+  right: 1rem;
+}
+
+div#worthslab table {
+  border: 1px solid var(--fg);
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 25rem;
+}
+
+div#worthslab th,
+div#worthslab td {
+  border: 1px solid var(--fg);
+  text-align: center;
+  padding: 0.25rem;
+}
+
+kbd {
+  border: 1px solid var(--fg);
+  border-radius: 2px;
+  padding: 2px;
+  font-family: monospace;
+  background: var(--inset);
 }

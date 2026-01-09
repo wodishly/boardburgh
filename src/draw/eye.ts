@@ -27,7 +27,7 @@ export const makeEye = (
 };
 
 export const setEye = (eye: Eye, handle: Handle): Eye => {
-  const wheelZ = handle.wheel.z;
+  const wheelZ = handle.mouse.wheel.z;
   if (false && isShiftDown(handle)) {
     eye.zoom.scale -= wheelZ.y / 1000;
   } else {

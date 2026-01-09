@@ -169,12 +169,12 @@ export const drawSVGBrickshape = (
     }
   }
 
-  const edgetells = edgetellsOf(brickname, "c");
+  const edgetells = edgetellsOf(brickname, "b");
   switch (edgetells.length) {
     case 4:
       svg.append(
         makeSVGElement("rect", {
-          ...toSvgBrush(Brushwit.city),
+          ...toSvgBrush(Brushwit.burgh),
           ...toRectangle({ navel, greatness }),
         })
       );
@@ -194,7 +194,7 @@ export const drawSVGBrickshape = (
       svgPath.push("Z");
       svg.append(
         makeSVGElement("path", {
-          ...toSvgBrush(Brushwit.city),
+          ...toSvgBrush(Brushwit.burgh),
           d: svgPath.join(" ").replace("L", "M"),
         })
       );
@@ -203,7 +203,7 @@ export const drawSVGBrickshape = (
       if ((edgetells[0] - edgetells[1]) % 2) {
         svg.append(
           makeSVGElement("path", {
-            ...toSvgBrush(Brushwit.city),
+            ...toSvgBrush(Brushwit.burgh),
             d:
               `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
               ` ` +
@@ -231,7 +231,7 @@ export const drawSVGBrickshape = (
         svgPath.push("Z");
         svg.append(
           makeSVGElement("path", {
-            ...toSvgBrush(Brushwit.city),
+            ...toSvgBrush(Brushwit.burgh),
             d: svgPath.join(" ").replace("L", "M"),
           })
         );
@@ -240,7 +240,7 @@ export const drawSVGBrickshape = (
     case 1:
       svg.append(
         makeSVGElement("path", {
-          ...toSvgBrush(Brushwit.city),
+          ...toSvgBrush(Brushwit.burgh),
           d:
             `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
             ` ` +

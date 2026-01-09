@@ -28,9 +28,9 @@ type Maybestaff<
   S extends Edgestaff = Edgestaff
 > =
   | ""
-  | (E extends "c"
+  | (E extends "b"
       ? N extends "f"
-        ? W extends "c"
+        ? W extends "b"
           ? S extends "f"
             ? 2
             : never
@@ -41,7 +41,7 @@ type Maybestaff<
 type ShieldstaffOf<
   N extends Edgestaff = Edgestaff,
   B extends boolean = boolean
-> = "" | (N extends "c" ? (B extends true ? "s" : never) : never);
+> = "" | (N extends "b" ? (B extends true ? "s" : never) : never);
 
 export const isBrickname = (x: unknown): x is Brickname => {
   if (typeof x !== "string") return false;
@@ -50,7 +50,7 @@ export const isBrickname = (x: unknown): x is Brickname => {
   const ending = x.slice(4);
   return (
     [...edges].every(isEdgestaff) &&
-    (ending === "" || ending === "s" || x === "cfcf2" || x === "cfcf2s")
+    (ending === "" || ending === "s" || x === "bfbf2" || x === "bfbf2s")
   );
 };
 
@@ -150,10 +150,10 @@ export const hasShield = (brickname: Brickname): brickname is Shield => {
 };
 
 export type CurvedRoadful =
-  | Brickname<"r", "r", "c" | "f", "c" | "f">
-  | Brickname<"c" | "f", "r", "r", "c" | "f">
-  | Brickname<"c" | "f", "c" | "f", "r", "r">
-  | Brickname<"r", "c" | "f", "c" | "f", "r">;
+  | Brickname<"r", "r", "b" | "f", "b" | "f">
+  | Brickname<"b" | "f", "r", "r", "b" | "f">
+  | Brickname<"b" | "f", "b" | "f", "r", "r">
+  | Brickname<"r", "b" | "f", "b" | "f", "r">;
 
 export const hasCurvedRoad = (
   brickname: Brickname
@@ -175,7 +175,7 @@ export type Church =
   | Brickname<"f", "f", "f", "r">;
 
 export const hasChurch = (brickname: Brickname): brickname is Church => {
-  return edgetellsOf(brickname, "r").length <= 1 && !hasCity(brickname);
+  return edgetellsOf(brickname, "r").length <= 1 && !hasBurgh(brickname);
 };
 
 export type Town =
@@ -189,16 +189,16 @@ export const hasTown = (brickname: Brickname): brickname is Town => {
 };
 
 export type Ful<S extends Edgestaff> = East<S> | North<S> | West<S> | South<S>;
-export type Cful = Ful<"c">;
+export type Bful = Ful<"b">;
 export type Fful = Ful<"f">;
 export type Rful = Ful<"r">;
 
-export const hasCity = (brickname: Brickname): brickname is Cful => {
+export const hasBurgh = (brickname: Brickname): brickname is Bful => {
   return (
-    brickname[0] === "c" ||
-    brickname[1] === "c" ||
-    brickname[2] === "c" ||
-    brickname[3] === "c"
+    brickname[0] === "b" ||
+    brickname[1] === "b" ||
+    brickname[2] === "b" ||
+    brickname[3] === "b"
   );
 };
 

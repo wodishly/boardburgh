@@ -1,8 +1,8 @@
 import { drawBoard, updateBoard } from "./board";
 import { freeze } from "./brick/brickstate";
 import { dealBrick, runTally } from "./brick/deck";
-import { updateDeckframeWith } from "./draw/html/deckframe-div";
-import { type GameDiv, makeGameDiv } from "./draw/html/game-div";
+import { updateDeckslabWith } from "./draw/html/div/slab/deckslab";
+import { type GameDiv, makeGameDiv } from "./draw/html/div/div";
 import { handleKeys } from "./key";
 import { type GameState, makeGameState } from "./state";
 
@@ -12,6 +12,8 @@ export type Game = {
   state: GameState;
   div: GameDiv;
 };
+
+export type GameUpdate = (game: Game, now: number) => void;
 
 export const makeGame = (): Game => {
   const state = makeGameState();
@@ -24,15 +26,15 @@ export const startGame = (game: Game) => {
   first.z = { x: 768, y: 512, kind: "world" };
   freeze(first);
 
-  updateDeckframeWith(
+  updateDeckslabWith(
     game.state,
-    game.div.deckframeDiv.laveSpan,
-    game.div.deckframeDiv.tallyDiv,
+    game.div.boardframeDiv.slabs.deckslab.laveSpan,
+    game.div.boardframeDiv.slabs.deckslab.tallyDiv,
     runTally(game.state)
   );
 };
 
-export const updateGame = (game: Game, now: number) => {
+export const updateGame: GameUpdate = (game: Game, now: number) => {
   handleKeys(game, now);
   updateBoard(game, now);
 };

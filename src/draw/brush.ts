@@ -1,7 +1,7 @@
 import type { Brick } from "../brick/brickstate";
 import type { Z } from "../help/reckon";
 import type { Eye } from "./eye";
-import { fg } from "./html/game-div";
+import { fg } from "./html/div/div";
 
 export type Brush = {
   fillColor: string;

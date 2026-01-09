@@ -54,7 +54,7 @@ export const isAnyKeyDown = (eater: KeyEater, codes: Keycode[]) => {
   return false;
 };
 
-export const isShiftDown = ({ eater }: Handle) => {
+export const isShiftDown = (eater: KeyEater) => {
   return isAnyKeyDown(eater, ["ShiftLeft", "ShiftRight"]);
 };
 

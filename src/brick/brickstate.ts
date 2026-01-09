@@ -13,6 +13,8 @@ import { getEye, getMouse, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
 import { Settings } from "../settings";
 import type { Brickname } from "./brickname";
+import type { GameState } from "../state";
+import { isKeyDown, isShiftDown } from "../key";
 
 export type BoardId = number;
 
@@ -87,85 +89,83 @@ export const freeze = (brick: Brick) => {
 export const handleBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
 
-  if (brick.state === "drop" && mouse.state === "mouseup") {
+  if (brick.state === "drop" && mouse.knob === "mouseup") {
     brick.state = brick.isSnapped ? "frozen" : "live";
-    unchoose(game);
-  } else if (brick.state === "drag" && mouse.state === "mousedown") {
+    unchooseBrick(game.state);
+  } else if (brick.state === "drag" && mouse.knob === "mousedown") {
     brick.state = "drop";
-  } else if (brick.state === "spin" && mouse.state === "mouseup") {
+  } else if (brick.state === "spin" && mouse.knob === "mouseup") {
     brick.state = "drop";
-    brick.farthings = mod(Math.round(brick.farthings / (Math.PI / 2)), 4);
-  } else if (brick.state === "choose" && mouse.state === "mousemove") {
+    brick.farthings = mod(Math.round(brick.farthings), 4);
+  } else if (brick.state === "choose" && mouse.move === "mousemove") {
     brick.state = "spin";
-  } else if (brick.state === "choose" && mouse.state === "mouseup") {
+  } else if (brick.state === "choose" && mouse.knob === "mouseup") {
     brick.state = "drag";
   } else if (
-    (brick.state === "spin" && mouse.state === "mousedown") ||
-    (brick.state === "spin" && mouse.state === "mousemove")
+    (brick.state === "spin" && mouse.knob === "mousedown") ||
+    (brick.state === "spin" && mouse.move === "mousemove")
   ) {
     handleSpin(game, brick as Override<Brick<"spin">>);
   } else if (
-    (brick.state === "drag" && mouse.state === "mouseup") ||
-    (brick.state === "drag" && mouse.state === "mousemove")
+    (brick.state === "drag" && mouse.knob === "mouseup") ||
+    (brick.state === "drag" && mouse.move === "mousemove")
   ) {
     handleDrag(game, brick as Override<Brick<"drag">>);
-  } else if (isMouseInBrick(game, brick)) {
-    if (brick.state === "hover2" && mouse.state === "mousedown") {
+  } else if (
+    isMouseInBrick(game, brick) &&
+    !game.state.handle.mouse.layer.includes("slab") &&
+    (!game.state.chosen || game.state.chosen === brick)
+  ) {
+    if (brick.state === "hover2" && mouse.knob === "mousedown") {
       brick.state = "choose";
-      if (!game.state.chosen) {
-        choose(game, brick);
-      }
+      chooseBrick(game.state, brick);
       brick.choose = {
         brickZ: worldToCanvas(brick.z, getEye(game)),
         brickW: (brick.farthings * Math.PI) / 2,
         clickZ: mouse.z,
       };
-    } else if (brick.state === "live" && mouse.state === "mousemove") {
-      if (!game.state.chosen) {
-        brick.state = "hover2";
-        choose(game, brick);
-      }
+    } else if (brick.state === "live" && mouse.move === "mousemove") {
+      brick.state = "hover2";
+      chooseBrick(game.state, brick);
     } else if (brick.state === "hover2") {
-      if (!game.state.chosen) {
-        choose(game, brick);
-      }
-    } else if (brick.state === "live" && mouse.state === "mouseup") {
-      if (!game.state.chosen) {
-        brick.state = "hover2";
-        choose(game, brick);
-      }
+      chooseBrick(game.state, brick);
+    } else if (brick.state === "live" && mouse.knob === "mouseup") {
+      brick.state = "hover2";
+      chooseBrick(game.state, brick);
     } else {
+      // console.log("fallthrough for", brick.state, mouse.move, mouse.knob);
     }
   } else {
     if (brick.state === "hover2") {
       brick.state = "live";
-      unchoose(game);
+      unchooseBrick(game.state);
     }
     brick.state = isHot(brick) ? "live" : "frozen";
   }
 };
 
-const choose = (game: Game, brick: Brick) => {
-  if (game.state.chosen) {
-    throw new Error("bad choose");
+const chooseBrick = (gameState: GameState, brick: Brick) => {
+  if (gameState.chosen) {
+    // console.log("already chosen", gameState.chosen);
+    return;
+  } else {
+    Object.assign(gameState, { chosen: popById(gameState, brick.boardId) });
   }
-  game.state.chosen = popById(game, brick.boardId);
-  // console.log("chose", game.state.chosen);
 };
 
-const unchoose = (game: Game) => {
-  if (!game.state.chosen) {
+const unchooseBrick = (gameState: GameState) => {
+  if (!gameState.chosen || !isBrick(gameState.chosen)) {
+    console.log(gameState.chosen);
     throw new Error("bad unchoose");
   }
-  game.state.boardlist.push(game.state.chosen);
-  // console.log("unchose", game.state.chosen);
-  game.state.chosen = undefined;
+  gameState.boardlist.push(gameState.chosen);
+  Object.assign(gameState, { chosen: undefined });
 };
 
-const popById = (game: Game, id: BoardId) => {
+const popById = (gameState: GameState, id: BoardId) => {
   return only(
-    game.state.boardlist.splice(
-      game.state.boardlist.findIndex((thing) => thing.boardId === id),
+    gameState.boardlist.splice(
+      gameState.boardlist.findIndex((thing) => thing.boardId === id),
       1
     )
   );
@@ -184,6 +184,11 @@ const handleSpin = (game: Game, brick: Brick<Chosen>) => {
   );
   const d = winkle - winkle2;
   brick.farthings = (brick.choose.brickW + d) / (Math.PI / 2);
+  if (!isShiftDown(game.state.handle.eater)) {
+    if (Math.abs(brick.farthings - Math.round(brick.farthings)) < 1 / 8) {
+      brick.farthings = Math.round(brick.farthings);
+    }
+  }
 };
 
 const handleDrag = (game: Game, brick: Brick<Chosen>) => {
@@ -200,10 +205,12 @@ const handleDrag = (game: Game, brick: Brick<Chosen>) => {
     // brick.drag.panOffset.y,
     kind: "world",
   };
-  handleSnap(game, brick);
+  if (!isShiftDown(game.state.handle.eater)) {
+    handleDrap(game, brick);
+  }
 };
 
-const handleSnap = (game: Game, brick: Brick<Chosen>) => {
+const handleDrap = (game: Game, brick: Brick<Chosen>) => {
   const boardlist = game.state.boardlist;
   const neighbors: Wayward<Maybe<Brick>> = makeWayward(() => undefined);
 
