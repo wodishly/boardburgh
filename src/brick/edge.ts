@@ -1,4 +1,4 @@
-import type { Override } from "../help/type";
+import type { Onset, Override } from "../help/type";
 import {
   type Brickname,
   type Eaststaff,
@@ -19,7 +19,7 @@ export type Edgestaff = "b" | "f" | "r";
 export const isEdgestaff = (x: unknown): x is Edgestaff =>
   x === "b" || x === "f" || x === "r";
 
-export type Edgename<S extends Edgestaff> = S extends "b"
+export type Edgename<S extends Edgestaff = Edgestaff> = S extends "b"
   ? "burgh"
   : S extends "f"
   ? "field"
@@ -40,6 +40,22 @@ export const edgestaffToName = <S extends Edgestaff>(staff: S): Edgename<S> => {
       return "road" as Override<Edgename<S>>;
   }
   staff satisfies never;
+};
+
+export type EdgestaffOf<N extends Edgename = Edgename> = Onset<N>;
+
+export const edgenameToStaff = <N extends Edgename>(
+  name: N
+): EdgestaffOf<N> => {
+  switch (name) {
+    case "burgh":
+      return "b" as Override<EdgestaffOf<N>>;
+    case "field":
+      return "f" as Override<EdgestaffOf<N>>;
+    case "road":
+      return "r" as Override<EdgestaffOf<N>>;
+  }
+  name satisfies never;
 };
 
 type Edgetells<N extends Brickname, S extends Edgestaff> = [

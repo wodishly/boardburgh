@@ -7,14 +7,21 @@ import {
   type Maybe,
   type Wayward,
 } from "../help/type";
-import { makeWayward, type Wayname } from "../help/way";
+import {
+  makeWayward,
+  wayMinus,
+  waynameOf,
+  wayPlus,
+  type Wayname,
+} from "../help/way";
 import { isMouseInBrick, doesWeave } from "../board";
 import { getEye, getMouse, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
 import { Settings } from "../settings";
 import type { Brickname } from "./brickname";
 import type { GameState } from "../state";
-import { isKeyDown, isShiftDown } from "../key";
+import { isShiftDown } from "../key";
+import { updateAllweb } from "../web";
 
 export type BoardId = number;
 
@@ -33,14 +40,16 @@ export type Brick<
     boardId: BoardId;
     farthings: S extends "spin" ? number : 0 | 1 | 2 | 3;
     neighbors: S extends Cold
-      ? Wayward<Maybe<Brick<Brickstate, Brickname>>>
+      ? Wayward<Maybe<Brick<Cold, Brickname>>>
       : S extends OnBoard
-      ? Maybe<Wayward<Maybe<Brick<Brickstate, Brickname>>>>
+      ? Maybe<Wayward<Maybe<Brick<Cold, Brickname>>>>
       : undefined;
     isSnapped: S extends Cold ? true : S extends "fresh" ? false : boolean;
     state: S;
     choose: S extends Chosen ? BrickChoose : undefined;
   };
+
+type NeighborBrick = Brick<Cold>;
 
 type Winkle = number;
 
@@ -48,6 +57,24 @@ type BrickChoose = {
   brickZ: Z<"canvas">; // starting z
   brickW: Winkle; // starting winkle
   clickZ: Z<"canvas">; // z of mouse click
+};
+
+/**
+ * @param deepedge the wayname of the edge to the world
+ * @returns the wayname of the edge to the brick
+ */
+export const reckonEdgeAfterSpin = (
+  brick: Brick<Exclude<Brickstate, "spin">>,
+  deepedge: Wayname
+) => {
+  return wayPlus(deepedge, waynameOf(brick.farthings));
+};
+
+export const reckonEdgeBeforeSpin = (
+  brick: Brick<Exclude<Brickstate, "spin">>,
+  shoaledge: Wayname
+) => {
+  return wayMinus(shoaledge, waynameOf(brick.farthings));
 };
 
 export const isBrickState = (x: unknown): x is Brickstate => {
@@ -80,17 +107,22 @@ export const isCold = (brick: Brick): brick is Brick<Cold> => {
   return brick.state === "nearby" || brick.state === "frozen";
 };
 
-export const freeze = (brick: Brick) => {
+export const freeze = (game: Game, brick: Brick) => {
   brick.state = "frozen";
   brick.choose = undefined;
   brick.isSnapped = true;
+  updateAllweb(game, brick as Override<Brick<Cold>>);
 };
 
 export const handleBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
 
   if (brick.state === "drop" && mouse.knob === "mouseup") {
-    brick.state = brick.isSnapped ? "frozen" : "live";
+    if (brick.isSnapped) {
+      freeze(game, brick);
+    } else {
+      brick.state = "live";
+    }
     unchooseBrick(game.state);
   } else if (brick.state === "drag" && mouse.knob === "mousedown") {
     brick.state = "drop";
@@ -212,7 +244,7 @@ const handleDrag = (game: Game, brick: Brick<Chosen>) => {
 
 const handleDrap = (game: Game, brick: Brick<Chosen>) => {
   const boardlist = game.state.boardlist;
-  const neighbors: Wayward<Maybe<Brick>> = makeWayward(() => undefined);
+  const neighbors: Wayward<Maybe<NeighborBrick>> = makeWayward(() => undefined);
 
   brick.isSnapped = false;
 
@@ -238,6 +270,7 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
         break;
     }
   }
+  console.log(neighbors);
   let someNeighbor = false;
   let allDoWeave = true;
   for (const neighbor of Object.values(neighbors)) {
@@ -276,6 +309,7 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     }
   }
   brick.neighbors = neighbors;
+  console.log(neighbors);
 };
 
 /**

@@ -43,6 +43,13 @@ export const wayNext = <N extends Wayname>(way: N) => {
   return wayPlus(way, "north");
 };
 
+export const wayMinus = <N extends Wayname, M extends Wayname>(
+  first: N,
+  other: M
+) => {
+  return wayPlus(wayPlus(wayPlus(first, other), other), other);
+};
+
 export const wayPlus = <N extends Wayname, M extends Wayname>(
   first: N,
   other: M

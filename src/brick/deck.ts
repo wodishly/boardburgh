@@ -1,10 +1,12 @@
 import { nextId } from "../state";
 import { Brickbook } from "./brickbook";
-import { shuffle } from "../help/reckon";
+import { choose, shuffle } from "../help/reckon";
 import { type Override, type Maybe } from "../help/type";
 import type { GameState } from "../state";
 import { type Brickname, hasShield } from "./brickname";
 import { type Brickshape, edges } from "./brickshape";
+import { makeWayward } from "../help/way";
+import type { Brick, OnBoard } from "./brickstate";
 
 export type Deck = {
   bricklist: Brickshape[];
@@ -58,12 +60,14 @@ export const dealBrick = (gameState: GameState, _now: number) => {
     boardId: nextId(gameState),
     z: { x: 600, y: 200, kind: "world" as const },
     isSnapped: false,
-    neighbors: undefined,
-    farthings: Math.floor(4 * Math.random()),
+    neighbors: makeWayward(() => undefined),
+    farthings: choose([0, 1, 2, 3] as const),
     state: "live" as const,
     choose: undefined,
-  });
+  }) satisfies Brick<OnBoard>;
+
   gameState.boardlist.push(brick);
+
   return brick;
 };
 

@@ -202,6 +202,15 @@ export const hasBurgh = (brickname: Brickname): brickname is Bful => {
   );
 };
 
+export const hasField = (brickname: Brickname): brickname is Fful => {
+  return (
+    brickname[0] === "f" ||
+    brickname[1] === "f" ||
+    brickname[2] === "f" ||
+    brickname[3] === "f"
+  );
+};
+
 export const hasRoad = (brickname: Brickname): brickname is Rful => {
   return (
     brickname[0] === "r" ||

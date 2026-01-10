@@ -24,7 +24,7 @@ export const makeGame = (): Game => {
 export const startGame = (game: Game) => {
   const first = dealBrick(game.state, 0);
   first.z = { x: 768, y: 512, kind: "world" };
-  freeze(first);
+  freeze(game, first);
 
   updateDeckslabWith(
     game.state,
