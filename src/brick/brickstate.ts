@@ -32,6 +32,17 @@ export type OnBoard = "live" | Chosen | "drop";
 export type Chosen = "choose" | "drag" | "spin" | "hover2";
 export type Cold = "nearby" | "frozen";
 
+export type Waykind = "brick" | "world";
+export type Brickway<
+  K extends Waykind = Waykind,
+  N extends Wayname = Wayname
+> = {
+  kind: K;
+  name: N;
+};
+export type Shoalway<N extends Wayname = Wayname> = Brickway<"world", N>;
+export type Deepway<N extends Wayname = Wayname> = Brickway<"brick", N>;
+
 export type Brick<
   S extends Brickstate = Brickstate,
   N extends Brickname = Brickname
@@ -62,19 +73,24 @@ type BrickChoose = {
 /**
  * @param deepedge the wayname of the edge to the world
  * @returns the wayname of the edge to the brick
+ *
+ * Note that the winding way has to be flipped (using
+ * `wayMinus` instead of `wayPlus`, since canvas goes
+ * E->S->W->N but bricks go E->N->W->S. This should
+ * one day be fixed by having bricks go E->S->W->N.
  */
 export const reckonEdgeAfterSpin = (
   brick: Brick<Exclude<Brickstate, "spin">>,
-  deepedge: Wayname
-) => {
-  return wayPlus(deepedge, waynameOf(brick.farthings));
+  { name }: Deepway
+): Shoalway => {
+  return { name: wayMinus(name, waynameOf(brick.farthings)), kind: "world" };
 };
 
 export const reckonEdgeBeforeSpin = (
   brick: Brick<Exclude<Brickstate, "spin">>,
-  shoaledge: Wayname
-) => {
-  return wayMinus(shoaledge, waynameOf(brick.farthings));
+  { name }: Shoalway
+): Deepway => {
+  return { name: wayPlus(name, waynameOf(brick.farthings)), kind: "brick" };
 };
 
 export const isBrickState = (x: unknown): x is Brickstate => {
@@ -178,7 +194,6 @@ export const handleBrick = (game: Game, brick: Brick) => {
 
 const chooseBrick = (gameState: GameState, brick: Brick) => {
   if (gameState.chosen) {
-    // console.log("already chosen", gameState.chosen);
     return;
   } else {
     Object.assign(gameState, { chosen: popById(gameState, brick.boardId) });
@@ -260,7 +275,13 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
           Math.abs(dz.x) < Settings.neighborThreshold))
     ) {
       other.state = "nearby";
-      neighbors[wayTo(brick, other)] = other;
+      neighbors[wayTo(other, brick)] = other;
+      console.log(
+        "i am",
+        brick.boardId,
+        ". neighbor is to",
+        wayTo(other, brick)
+      );
       if (
         neighbors.east &&
         neighbors.north &&
@@ -270,7 +291,6 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
         break;
     }
   }
-  console.log(neighbors);
   let someNeighbor = false;
   let allDoWeave = true;
   for (const neighbor of Object.values(neighbors)) {
@@ -282,26 +302,26 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     brick.isSnapped = true;
     if (neighbors.east) {
       brick.z = {
-        x: neighbors.east.z.x + Settings.brickLength,
+        x: neighbors.east.z.x - Settings.brickLength,
         y: neighbors.east.z.y,
         kind: "world",
       };
     } else if (neighbors.north) {
       brick.z = {
         x: neighbors.north.z.x,
-        y: neighbors.north.z.y - Settings.brickLength,
+        y: neighbors.north.z.y + Settings.brickLength,
         kind: "world",
       };
     } else if (neighbors.west) {
       brick.z = {
-        x: neighbors.west.z.x - Settings.brickLength,
+        x: neighbors.west.z.x + Settings.brickLength,
         y: neighbors.west.z.y,
         kind: "world",
       };
     } else if (neighbors.south) {
       brick.z = {
         x: neighbors.south.z.x,
-        y: neighbors.south.z.y + Settings.brickLength,
+        y: neighbors.south.z.y - Settings.brickLength,
         kind: "world",
       };
     } else {
@@ -309,7 +329,6 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     }
   }
   brick.neighbors = neighbors;
-  console.log(neighbors);
 };
 
 /**

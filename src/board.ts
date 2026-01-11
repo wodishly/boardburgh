@@ -208,9 +208,22 @@ const drawBrick = (game: Game, brick: Brick) => {
     }
   );
 
+  withBorrowedContext(
+    canvas.context,
+    { brush: { fillColor: "red", strokeWidth: 8 }, wend },
+    (context) => {
+      context.moveTo(brickframe.width / 2, -brickframe.height / 2);
+      context.lineTo(brickframe.width / 2, brickframe.height / 2);
+    }
+  );
+
   if (game.state.isLeeching) {
     if (isInState(brick, "spin")) {
-      drawDebugOrd(canvas, canvasToWorld(brick.choose.clickZ, canvas.eye), "wend");
+      drawDebugOrd(
+        canvas,
+        canvasToWorld(brick.choose.clickZ, canvas.eye),
+        "wend"
+      );
       withBorrowedContext(
         canvas.context,
         { brush: { fillColor: fg() }, wend: undefined },

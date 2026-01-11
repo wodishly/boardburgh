@@ -6,9 +6,11 @@ import {
   type BoardId,
   type Brick,
   type Cold,
+  type Shoalway,
 } from "./brick/brickstate";
 import { type Edgename } from "./brick/edge";
 import type { Game } from "./game";
+import type { Override } from "./help/type";
 import { wayNext, type Wayname } from "./help/way";
 
 /**
@@ -31,7 +33,7 @@ type Yoke<E extends Edgename = Edgename, B extends boolean = boolean> = {
 
 type Edge<E extends Edgename = Edgename> = {
   brickId: BoardId;
-  deepway: Wayname;
+  shoalway: Shoalway;
   kind: E;
 };
 
@@ -43,14 +45,14 @@ export const makeAllweb = (): Allweb => {
   };
 };
 
-const getWebByKind = (game: Game, kind: Edgename) => {
+const getWebByKind = <N extends Edgename>(game: Game, kind: N) => {
   switch (kind) {
     case "burgh":
-      return game.state.allweb.burghweb;
+      return game.state.allweb.burghweb as Override<Web<N>>;
     case "field":
-      return game.state.allweb.fieldweb;
+      return game.state.allweb.fieldweb as Override<Web<N>>;
     case "road":
-      return game.state.allweb.roadweb;
+      return game.state.allweb.roadweb as Override<Web<N>>;
   }
   kind satisfies never;
 };
@@ -67,14 +69,41 @@ export const updateAllweb = (game: Game, brick: Brick<Cold>) => {
   handleOuterYoke(game, brick, "west");
   handleOuterYoke(game, brick, "south");
 
-  // handleInnerYoke(game, brick, "east", "north");
-  // handleInnerYoke(game, brick, "east", "west");
-  // handleInnerYoke(game, brick, "east", "south");
-  // handleInnerYoke(game, brick, "north", "west");
-  // handleInnerYoke(game, brick, "north", "south");
-  // handleInnerYoke(game, brick, "west", "south");
+  handleInnerYoke(game, brick, "east", "north");
+  handleInnerYoke(game, brick, "east", "west");
+  handleInnerYoke(game, brick, "east", "south");
+  handleInnerYoke(game, brick, "north", "west");
+  handleInnerYoke(game, brick, "north", "south");
+  handleInnerYoke(game, brick, "west", "south");
 
-  console.log(game.state.allweb);
+  console.log(
+    game.state.allweb.burghweb.yokes.map((yoke) => yoke.edges),
+    game.state.allweb.fieldweb.yokes.map((yoke) => yoke.edges),
+    game.state.allweb.roadweb.yokes.map((yoke) => yoke.edges)
+  );
+};
+
+const yokeYokes = <E extends Edgename>(
+  web: Web<E>,
+  first: Yoke<E>,
+  other: Yoke<E>
+) => {
+  console.log("yoking yokes", first, other);
+  const firstIndex = web.yokes.indexOf(first);
+  const otherIndex = web.yokes.indexOf(other);
+  if (firstIndex > otherIndex) {
+    first.edges.push(...other.edges);
+    web.yokes.splice(otherIndex, 1);
+  } else if (firstIndex < otherIndex) {
+    other.edges.push(...first.edges);
+    web.yokes.splice(firstIndex, 1);
+  } else {
+    console.log("these are already the same yoke!");
+  }
+};
+
+export const makeShoalway = <N extends Wayname>(name: N): Shoalway<N> => {
+  return { name, kind: "world" };
 };
 
 const handleInnerYoke = <W extends Wayname, V extends Wayname>(
@@ -83,18 +112,31 @@ const handleInnerYoke = <W extends Wayname, V extends Wayname>(
   firstWayname: W,
   otherWayname: V
 ) => {
-  if (brick.edges[firstWayname] === brick.edges[otherWayname]) {
-    console.log(firstWayname, otherWayname);
-    const firstYoke = findYokeByEdge(game, makeEdge(brick, firstWayname))!;
-    const otherYoke = findYokeByEdge(game, makeEdge(brick, otherWayname))!;
-    console.log("yoking", firstYoke, "with", otherYoke);
-    firstYoke.push(...otherYoke.slice(1));
-    console.log(firstYoke, otherYoke);
-    const web = fromEdgename(game, brick.edges[otherWayname]);
-    web.yokes.splice(
-      web.yokes.findIndex((yoke) => yoke === otherYoke),
-      1
-    );
+  const firstShoalway = makeShoalway(firstWayname);
+  const otherShoalway = makeShoalway(otherWayname);
+  const firstDeepway = reckonEdgeBeforeSpin(brick, firstShoalway);
+  const otherDeepway = reckonEdgeBeforeSpin(brick, otherShoalway);
+  console.log(
+    `handling inner yoke for ${brick.boardId}.\n` +
+      `  first shoalway ${firstShoalway.name} (deep ${firstDeepway.name}),\n` +
+      `  other shoalway ${otherShoalway.name} (deep ${otherDeepway.name})`
+  );
+  const firstKind = brick.edges[firstDeepway.name];
+  const otherKind = brick.edges[otherDeepway.name];
+  if (firstKind === otherKind) {
+    const firstYoke = findYokeByEdge(game, {
+      brickId: brick.boardId,
+      shoalway: firstShoalway,
+      kind: firstKind,
+    })!;
+    const otherYoke = findYokeByEdge(game, {
+      brickId: brick.boardId,
+      shoalway: otherShoalway,
+      kind: otherKind,
+    })!;
+    yokeYokes(getWebByKind(game, firstKind), firstYoke, otherYoke);
+  } else {
+    console.log("edgekinds", firstKind, otherKind, "don't match, skipping.");
   }
 };
 
@@ -103,48 +145,72 @@ const handleOuterYoke = <W extends Wayname>(
   brick: Brick<Cold>,
   wayname: W
 ) => {
-  const brickway = reckonEdgeBeforeSpin(brick, wayname);
-  if (brick.neighbors[wayname] === undefined) {
-    console.log(`making new yoke on canvas-${wayname} edge of,`, brick.boardId);
-    const edgename = brick.edges[brickway];
-    const web: Web<typeof edgename> = fromEdgename(game, edgename);
-    const yoke: OpenYoke<typeof edgename> = makeYoke(makeEdge(brick, brickway));
+  const shoalway = { name: wayname, kind: "world" as const };
+  const deepway = reckonEdgeBeforeSpin(brick, shoalway);
+  const kind = brick.edges[deepway.name];
+  const neighbor = brick.neighbors[shoalway.name];
+  console.log(
+    `handling outer yoke for ${brick.boardId}.\n` +
+      `  shoalway ${shoalway.name} (deep ${deepway.name})`
+  );
+  if (neighbor === undefined) {
+    console.log(
+      `making new yoke on canvas-${shoalway.name} (brick-${deepway.name}) edge of,`,
+      brick.boardId
+    );
+    const web: Web<typeof kind> = fromEdgename(game, kind);
+    const yoke: Yoke<typeof kind> = makeYoke(makeEdge(brick, shoalway));
     web.yokes.push(yoke);
   } else {
-    const neighbor = brick.neighbors[wayname];
-    const kind = neighbor.edges[brickway];
-    console.log(`canvas-${wayname} neighbor is`, neighbor.boardId, kind);
-
-    const yoke = findYokeByEdge(
-      game,
-      makeEdge(
-        neighbor,
-        reckonEdgeBeforeSpin(neighbor, wayNext(wayNext(wayname)))
-      )
-    );
+    const yoke = findYokeByEdge(game, {
+      brickId: neighbor.boardId,
+      shoalway: makeShoalway(wayNext(wayNext(shoalway.name))),
+      kind,
+    });
     if (!yoke) {
       console.error(yoke);
     } else {
-      const edge: Edge = {
+      const edge = {
         brickId: brick.boardId,
-        deepway: brickway,
+        shoalway,
         kind,
       };
-      yoke.push(edge);
+      yoke.edges.push(edge);
     }
   }
 };
 
-const findYokeByEdge = <E extends Edgename>(game: Game, edge: Edge<E>) => {
+const findYokeByEdge = <N extends Edgename>(game: Game, edge: Edge<N>) => {
+  console.log("looking for edge", edge);
   const { kind } = edge;
   const yoke = getWebByKind(game, kind).yokes.find(
-    (yoke) => yoke.isOpen && yoke.edges.includes(edge)
+    (yoke) => yoke.isOpen && isEdgeInYoke(yoke, edge)
   );
   if (yoke && yoke.isOpen) {
+    console.log("found open yoke", yoke);
     return yoke;
   } else {
+    console.log("no yoke found!");
     return undefined;
   }
+};
+
+const isEdgeInYoke = <N extends Edgename>(yoke: Yoke<N>, edge: Edge<N>) => {
+  for (let i = 0; i < yoke.edges.length; i++) {
+    console.log(yoke.edges[i], edge);
+    if (
+      yoke.edges[i].brickId === edge.brickId &&
+      yoke.edges[i].shoalway.name === edge.shoalway.name &&
+      yoke.edges[i].kind === edge.kind
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const isShoalsideOpen = (brick: Brick, shoalway: Shoalway) => {
+  return !brick.neighbors || brick.neighbors[shoalway.name] === undefined;
 };
 
 const makeYoke = <N extends Edgename>(edge: Edge<N>): Yoke<N> => {
@@ -154,10 +220,10 @@ const makeYoke = <N extends Edgename>(edge: Edge<N>): Yoke<N> => {
   };
 };
 
-const makeEdge = (brick: Brick, wayname: Wayname): Edge => {
+const makeEdge = (brick: Brick<Cold>, shoalway: Shoalway): Edge => {
   return {
     brickId: brick.boardId,
-    deepway: wayname,
-    kind: brick.edges[wayname],
+    shoalway,
+    kind: brick.edges[reckonEdgeBeforeSpin(brick, shoalway).name],
   };
 };

@@ -14,9 +14,9 @@ export type Thaw<T extends object> = {
 
 export type Wayward<T, U = T, V = U, W = V> = {
   east: T;
-  north: U;
+  south: U;
   west: V;
-  south: W;
+  north: W;
 };
 
 export const sameshift = <N extends number, T extends Flight<T[number], N>, U>(

@@ -25,7 +25,7 @@ export const makeGameState = (): GameState => {
     boardlist: [],
     chosen: undefined,
     ids: 0,
-    isLeeching: false,
+    isLeeching: true,
     allweb: makeAllweb(),
   };
 };
