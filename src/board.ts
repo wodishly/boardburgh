@@ -24,7 +24,7 @@ import {
   withBorrowedContextForText,
 } from "./draw/canvas";
 import { drawDebug, drawDebugOrd, fg } from "./draw/html/div/div";
-import { withCommas, z } from "./help/reckon";
+import { z } from "./help/reckon";
 import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
 import { type Maybe } from "./help/type";
@@ -109,7 +109,10 @@ const makeKeyslab = (gameState: GameState) => {
 
 export const isMouseInBrick = (game: Game, brick: Brick) => {
   const mouse = game.state.handle.mouse;
-  const worldZ = canvasToWorld(mouse.z, game.div.boardframeDiv.boardCanvas.eye);
+  const worldZ = canvasToWorld(
+    mouse.pointer.z,
+    game.div.boardframeDiv.boardCanvas.eye
+  );
   const outcome =
     Math.abs(brick.z.x - worldZ.x) < Settings.brickLength / 2 &&
     Math.abs(brick.z.y - worldZ.y) < Settings.brickLength / 2;
@@ -153,9 +156,6 @@ export const drawBoard = (game: Game) => {
   if (isBrick(game.state.chosen)) {
     drawChosen(game, game.state.chosen);
   }
-  // for (let i = 0; i < canvas.slabDivs.length; i++) {
-  //   drawSlab(game, canvas.slabDivs[i]);
-  // }
   drawDebug(game);
 };
 
@@ -210,31 +210,24 @@ const drawBrick = (game: Game, brick: Brick) => {
 
   if (game.state.isLeeching) {
     if (isInState(brick, "spin")) {
-      drawDebugOrd(canvas, canvasToWorld(brick.choose.clickZ, canvas.eye), "wend");
+      drawDebugOrd(
+        canvas,
+        canvasToWorld(brick.choose.clickZ, canvas.eye),
+        "wend"
+      );
       withBorrowedContext(
         canvas.context,
         { brush: { fillColor: fg() }, wend: undefined },
         (context) => {
           context.moveTo(brick.choose.clickZ.x, brick.choose.clickZ.y);
           context.lineTo(
-            game.state.handle.mouse.z.x,
-            game.state.handle.mouse.z.y
+            game.state.handle.mouse.pointer.z.x,
+            game.state.handle.mouse.pointer.z.y
           );
         }
       );
     }
-    withBorrowedContextForText(
-      canvas.context,
-      {
-        brush: { fillColor: isChosen(game, brick) ? "white" : "black" },
-        wend,
-      },
-      `(${withCommas(brick.z)})`,
-      worldToCanvas(
-        { x: brick.z.x, y: brick.z.y - 20, kind: "world" },
-        canvas.eye
-      )
-    );
+    drawDebugOrd(canvas, brick.z);
     withBorrowedContextForText(
       canvas.context,
       {
@@ -246,7 +239,7 @@ const drawBrick = (game: Game, brick: Brick) => {
       },
       brick.state,
       worldToCanvas(
-        { x: brick.z.x, y: brick.z.y + 20, kind: "world" },
+        { x: brick.z.x, y: brick.z.y + 40, kind: "world" },
         canvas.eye
       )
     );

@@ -59,7 +59,7 @@ export const updateSlabs: GameUpdate = (game: Game, now: number) => {
   // we need `.reverse()` here to correct for z-index
   for (const slab of Object.values(game.div.boardframeDiv.slabs).reverse()) {
     const mouseIsInSlab = isMouseInSlab(mouse, slab);
-    if (mouse.knob === "mousedown") {
+    if (mouse.pointer.knob === "pointerdown") {
       if (
         mouseIsInSlab &&
         slab.startZ === undefined &&
@@ -71,14 +71,14 @@ export const updateSlabs: GameUpdate = (game: Game, now: number) => {
             y: unpx("top", slab.element),
             kind: "canvas",
           };
-          slab.clickZ = mouse.z;
+          slab.clickZ = mouse.pointer.z;
           chooseSlab(game.state, slab);
         }
       }
       if (slab.startZ && slab.clickZ) {
         if (slab.element.style.top !== "auto") {
           slab.element.style.top = `${
-            mouse.z.y + (slab.startZ.y - slab.clickZ.y)
+            mouse.pointer.z.y + (slab.startZ.y - slab.clickZ.y)
           }px`;
           if (slab.element.style.bottom !== "auto") {
             slab.element.style.bottom = "auto";
@@ -86,14 +86,14 @@ export const updateSlabs: GameUpdate = (game: Game, now: number) => {
         }
         if (slab.element.style.left !== "auto") {
           slab.element.style.left = `${
-            mouse.z.x + (slab.startZ.x - slab.clickZ.x)
+            mouse.pointer.z.x + (slab.startZ.x - slab.clickZ.x)
           }px`;
           if (slab.element.style.right !== "auto") {
             slab.element.style.right = "auto";
           }
         }
       }
-    } else if (mouse.knob === "mouseup") {
+    } else if (mouse.pointer.knob === "pointerup") {
       slab.startZ = undefined;
       slab.clickZ = undefined;
       if (game.state.chosen) {
@@ -137,10 +137,10 @@ const unpx = <K extends keyof HTMLElementTagNameMap>(
 
 export const isMouseInSlab = (mouse: Mouse, slab: Slab) => {
   const outcome =
-    unpx("left", slab.element) < mouse.z.x &&
-    mouse.z.x < unpx("left", slab.element) + slab.element.offsetWidth &&
-    unpx("top", slab.element) < mouse.z.y &&
-    mouse.z.y < unpx("top", slab.element) + slab.element.offsetHeight;
+    unpx("left", slab.element) < mouse.pointer.z.x &&
+    mouse.pointer.z.x < unpx("left", slab.element) + slab.element.offsetWidth &&
+    unpx("top", slab.element) < mouse.pointer.z.y &&
+    mouse.pointer.z.y < unpx("top", slab.element) + slab.element.offsetHeight;
 
   if (outcome) {
     mouse.layer.push("slab");

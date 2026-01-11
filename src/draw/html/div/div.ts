@@ -1,4 +1,3 @@
-import { makeDeckslab, type Deckslab } from "./slab/deckslab";
 import type { GameState } from "../../../state";
 import {
   type BoardCanvas,
@@ -8,8 +7,8 @@ import {
 import { wakeHandle } from "../../handle";
 import { withCommas, type Z } from "../../../help/reckon";
 import { type ElementWithId, makeWithId } from "../type";
-import { canvasToWorld, worldToCanvas } from "../../brush";
-import { ringdeal } from "../../canvas";
+import { canvasToWorld, worldToCanvas, type Brush } from "../../brush";
+import { ringdeal, withBorrowedContextForText } from "../../canvas";
 import { getCanvas, type Game } from "../../../game";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
@@ -51,19 +50,26 @@ export const makeGameDiv = (gameState: GameState): GameDiv => {
 export const drawDebug = (game: Game) => {
   const handle = game.state.handle;
   const boardCanvas = getCanvas(game);
-  boardCanvas.context.font = `15px sans-serif`;
-  boardCanvas.context.fillStyle = fg();
 
   if (game.state.isLeeching) {
-    drawDebugOrd(
-      boardCanvas,
-      canvasToWorld(handle.mouse.z, boardCanvas.eye),
-      "mouse"
-    );
+    if (handle.mouse.pointer !== undefined) {
+      drawDebugOrd(
+        boardCanvas,
+        canvasToWorld(handle.mouse.pointer.z, boardCanvas.eye),
+        "pointer"
+      );
+    }
+    if (handle.mouse.otherPointer !== undefined) {
+      drawDebugOrd(
+        boardCanvas,
+        canvasToWorld(handle.mouse.otherPointer.z, boardCanvas.eye),
+        "otherPointer"
+      );
+    }
     drawDebugOrd(
       boardCanvas,
       canvasToWorld(boardCanvas.eye.pan, boardCanvas.eye),
-      "0"
+      "unpan"
     );
     drawDebugOrd(
       boardCanvas,
@@ -81,16 +87,24 @@ export const drawDebug = (game: Game) => {
 export const drawDebugOrd = (
   boardCanvas: BoardCanvas,
   z: Z<"world">,
-  name = ""
+  name = "",
+  brush: Partial<Brush> = {}
 ) => {
-  const { eye, context: feather } = boardCanvas;
+  const { eye, context } = boardCanvas;
   const worldZ = z;
   const screenZ = worldToCanvas(z, eye);
 
-  feather.fillText(
+  withBorrowedContextForText(
+    context,
+    {
+      brush: {
+        fontSize: 15,
+        fillColor: fg(),
+        ...brush,
+      },
+    },
     `${name}_s: ${withCommas(screenZ, true)}`,
-    screenZ.x,
-    screenZ.y - 10
+    { x: screenZ.x, y: screenZ.y - 10, kind: "canvas" }
   );
   ringdeal(
     boardCanvas,
@@ -102,12 +116,20 @@ export const drawDebugOrd = (
     2 * Math.PI,
     {
       fillColor: fg(),
+      ...brush,
     }
   );
-  feather.fillText(
+  withBorrowedContextForText(
+    context,
+    {
+      brush: {
+        fontSize: 15,
+        fillColor: fg(),
+        ...brush,
+      },
+    },
     `${name}_w: ${withCommas(worldZ, true)}`,
-    screenZ.x,
-    screenZ.y + 10
+    { x: screenZ.x, y: screenZ.y + 10, kind: "canvas" }
   );
 };
 
