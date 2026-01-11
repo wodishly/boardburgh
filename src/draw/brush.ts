@@ -42,16 +42,11 @@ export const worldToCanvas = (
   eye: Eye,
   doPan = true
 ): Z<"canvas"> => {
-  const newZ = {
-    x:
-      eye.zoom.navel.x +
-      eye.zoom.scale * (z.x + (doPan ? eye.pan.x : 0) - eye.zoom.navel.x),
-    y:
-      eye.zoom.navel.y +
-      eye.zoom.scale * (z.y + (doPan ? eye.pan.y : 0) - eye.zoom.navel.y),
+  return {
+    x: eye.zoom.scale * (z.x + (doPan ? eye.pan.x : 0)),
+    y: eye.zoom.scale * (z.y + (doPan ? eye.pan.y : 0)),
     kind: "canvas" as const,
   };
-  return newZ;
 };
 
 export const canvasToWorld = (
