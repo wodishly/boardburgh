@@ -9,8 +9,13 @@ import {
 } from "./brick/brickstate";
 import { type Edgename } from "./brick/edge";
 import type { Game } from "./game";
-import type { Maybe, Override } from "./help/type";
 import { wayNext, type Wayname } from "./help/way";
+
+/**
+ * An edge is an edge.
+ * A yoke is a set of linked edges of the given kind..
+ * A web is a set of yokes, all of the same kind of edge.
+ */
 
 export type Allweb = { [N in Edgename as `${N}web`]: Web<N> };
 
@@ -19,15 +24,9 @@ type Web<E extends Edgename = Edgename> = {
   kind: E;
 };
 
-type Yoke<
-  E extends Edgename = Edgename,
-  Head extends Maybe<Edge<E>> = Maybe<Edge<E>>
-> = [Head, ...Edge<E>[]];
-type OpenYoke<E extends Edgename = Edgename> = Yoke<E, undefined>;
-type ClosedYoke<E extends Edgename = Edgename> = Yoke<E, Edge<E>>;
-
-const isOpenYoke = <E extends Edgename>(x: Yoke<E>): x is OpenYoke<E> => {
-  return x[0] === undefined;
+type Yoke<E extends Edgename = Edgename, B extends boolean = boolean> = {
+  isOpen: B;
+  edges: Edge<E>[];
 };
 
 type Edge<E extends Edgename = Edgename> = {
@@ -139,17 +138,20 @@ const handleOuterYoke = <W extends Wayname>(
 const findYokeByEdge = <E extends Edgename>(game: Game, edge: Edge<E>) => {
   const { kind } = edge;
   const yoke = getWebByKind(game, kind).yokes.find(
-    (yoke) => isOpenYoke(yoke) && yoke.includes(edge)
+    (yoke) => yoke.isOpen && yoke.edges.includes(edge)
   );
-  if (yoke && isOpenYoke(yoke)) {
+  if (yoke && yoke.isOpen) {
     return yoke;
   } else {
     return undefined;
   }
 };
 
-const makeYoke = <N extends Edgename>(edge: Edge<N>): OpenYoke<N> => {
-  return [undefined, edge];
+const makeYoke = <N extends Edgename>(edge: Edge<N>): Yoke<N> => {
+  return {
+    isOpen: true,
+    edges: [edge],
+  };
 };
 
 const makeEdge = (brick: Brick, wayname: Wayname): Edge => {
