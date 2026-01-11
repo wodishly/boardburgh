@@ -55,6 +55,10 @@ export const getEye = (game: Game) => {
   return game.div.boardframeDiv.boardCanvas.eye;
 };
 
+export const getHandle = (game: Game) => {
+  return game.state.handle;
+};
+
 export const getMouse = (game: Game) => {
   return game.state.handle.mouse;
 };

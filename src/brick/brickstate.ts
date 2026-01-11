@@ -119,7 +119,6 @@ export const handleBrick = (game: Game, brick: Brick) => {
     !game.state.handle.mouse.layer.includes("slab") &&
     (!game.state.chosen || game.state.chosen === brick)
   ) {
-    console.log("ah");
     if (brick.state === "hover2" && isPointerDown(mouse)) {
       brick.state = "choose";
       chooseBrick(game.state, brick);
@@ -128,13 +127,10 @@ export const handleBrick = (game: Game, brick: Brick) => {
         brickW: (brick.farthings * Math.PI) / 2,
         clickZ: mouse.pointer.z,
       };
-    } else if (brick.state === "live" && isPointerMove(mouse)) {
+    } else if (brick.state === "live") {
       brick.state = "hover2";
       chooseBrick(game.state, brick);
     } else if (brick.state === "hover2") {
-      chooseBrick(game.state, brick);
-    } else if (brick.state === "live" && isPointerUp(mouse)) {
-      brick.state = "hover2";
       chooseBrick(game.state, brick);
     } else {
       console.log(

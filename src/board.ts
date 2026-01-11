@@ -11,7 +11,7 @@ import {
   makeWithId,
 } from "./draw/html/type";
 import { Settings } from "./settings";
-import { makeEye, resize, type Eye } from "./draw/eye";
+import { makeEye, resize, setEye, type Eye } from "./draw/eye";
 import { isWaytell, waynameOf, wayPlus } from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
@@ -145,6 +145,9 @@ export const updateBoard = (game: Game, now: number) => {
 
 export const drawBoard = (game: Game) => {
   const canvas = getCanvas(game);
+  if (game.state.handle.mouse.wheel.state === "wheel") {
+    setEye(canvas.eye, game.state.handle);
+  }
   wipe(canvas);
   for (const thing of game.state.boardlist) {
     if (isBrick(thing)) {

@@ -5,7 +5,7 @@ import {
   makeBoardframeDiv,
 } from "../../../board";
 import { wakeHandle } from "../../handle";
-import { withCommas, type Z } from "../../../help/reckon";
+import { roundTo, withCommas, type Z } from "../../../help/reckon";
 import { type ElementWithId, makeWithId } from "../type";
 import { canvasToWorld, worldToCanvas, type Brush } from "../../brush";
 import { ringdeal, withBorrowedContextForText } from "../../canvas";
@@ -52,34 +52,62 @@ export const drawDebug = (game: Game) => {
   const boardCanvas = getCanvas(game);
 
   if (game.state.isLeeching) {
-    if (handle.mouse.pointer !== undefined) {
-      drawDebugOrd(
-        boardCanvas,
-        canvasToWorld(handle.mouse.pointer.z, boardCanvas.eye),
-        "pointer"
-      );
-    }
-    if (handle.mouse.otherPointer !== undefined) {
-      drawDebugOrd(
-        boardCanvas,
-        canvasToWorld(handle.mouse.otherPointer.z, boardCanvas.eye),
-        "otherPointer"
-      );
-    }
+    drawDebugOrd(
+      boardCanvas,
+      canvasToWorld(handle.mouse.pointer.z, boardCanvas.eye),
+      "pointer"
+    );
+    withBorrowedContextForText(
+      boardCanvas.context,
+      { brush: { fontSize: 15, fillColor: fg(), textAlign: "left" } },
+      `p0_knob: ${handle.mouse.pointer.knob?.slice(7) ?? ""}`,
+      {
+        x: handle.mouse.pointer.z.x - 50,
+        y: handle.mouse.pointer.z.y + 30,
+        kind: "canvas",
+      }
+    );
+    withBorrowedContextForText(
+      boardCanvas.context,
+      { brush: { fontSize: 15, fillColor: fg(), textAlign: "left" } },
+      `p0_move: ${handle.mouse.pointer.move?.slice(7) ?? ""}`,
+      {
+        x: handle.mouse.pointer.z.x - 50,
+        y: handle.mouse.pointer.z.y + 50,
+        kind: "canvas",
+      }
+    );
     drawDebugOrd(
       boardCanvas,
       canvasToWorld(boardCanvas.eye.pan, boardCanvas.eye),
       "unpan"
     );
+
+    withBorrowedContextForText(
+      boardCanvas.context,
+      { brush: { fontSize: 15, fillColor: fg(), textAlign: "left" } },
+      `zoom: ${roundTo(boardCanvas.eye.zoom.scale, 3)}`,
+      {
+        x: handle.mouse.pointer.z.x - 50,
+        y: handle.mouse.pointer.z.y + 70,
+        kind: "canvas",
+      }
+    );
+    drawDebugOrd(
+      boardCanvas,
+      canvasToWorld(boardCanvas.eye.zoom.navel, boardCanvas.eye),
+      "z0"
+    );
+
     drawDebugOrd(
       boardCanvas,
       canvasToWorld({ x: 15, y: 15, kind: "canvas" as const }, boardCanvas.eye),
-      "0"
+      "0w"
     );
     drawDebugOrd(
       boardCanvas,
       { x: 400, y: 200, kind: "world" as const },
-      "ord"
+      "someOrd"
     );
   }
 };

@@ -22,13 +22,13 @@ export const makeEye = (
       kind: "canvas" as const,
     },
   };
-  window.addEventListener("wheel", () => setEye(eye, handle));
   return eye;
 };
 
 export const setEye = (eye: Eye, handle: Handle): Eye => {
   const wheelZ = handle.mouse.wheel.z;
-  if (false && isShiftDown(handle.eater)) {
+  if (handle.mouse.wheel.ctrlKey) {
+    eye.zoom.navel = handle.mouse.pointer.z;
     eye.zoom.scale -= wheelZ.y / 1000;
   } else {
     eye.pan.x -= wheelZ.x;
