@@ -62,8 +62,6 @@ export const fromEdgename = <E extends Edgename>(game: Game, edgename: E) => {
 };
 
 export const updateAllweb = (game: Game, brick: Brick<Cold>) => {
-  console.log("updating allweb…");
-
   handleOuterYoke(game, brick, "east");
   handleOuterYoke(game, brick, "north");
   handleOuterYoke(game, brick, "west");
@@ -75,12 +73,6 @@ export const updateAllweb = (game: Game, brick: Brick<Cold>) => {
   handleInnerYoke(game, brick, "north", "west");
   handleInnerYoke(game, brick, "north", "south");
   handleInnerYoke(game, brick, "west", "south");
-
-  console.log(
-    game.state.allweb.burghweb.yokes.map((yoke) => yoke.edges),
-    game.state.allweb.fieldweb.yokes.map((yoke) => yoke.edges),
-    game.state.allweb.roadweb.yokes.map((yoke) => yoke.edges)
-  );
 };
 
 const yokeYokes = <E extends Edgename>(
@@ -88,7 +80,6 @@ const yokeYokes = <E extends Edgename>(
   first: Yoke<E>,
   other: Yoke<E>
 ) => {
-  console.log("yoking yokes", first, other);
   const firstIndex = web.yokes.indexOf(first);
   const otherIndex = web.yokes.indexOf(other);
   if (firstIndex > otherIndex) {
@@ -98,7 +89,7 @@ const yokeYokes = <E extends Edgename>(
     other.edges.push(...first.edges);
     web.yokes.splice(firstIndex, 1);
   } else {
-    console.log("these are already the same yoke!");
+    console.debug("these are already the same yoke!");
   }
 };
 
@@ -116,7 +107,7 @@ const handleInnerYoke = <W extends Wayname, V extends Wayname>(
   const otherShoalway = makeShoalway(otherWayname);
   const firstDeepway = reckonEdgeBeforeSpin(brick, firstShoalway);
   const otherDeepway = reckonEdgeBeforeSpin(brick, otherShoalway);
-  console.log(
+  console.debug(
     `handling inner yoke for ${brick.boardId}.\n` +
       `  first shoalway ${firstShoalway.name} (deep ${firstDeepway.name}),\n` +
       `  other shoalway ${otherShoalway.name} (deep ${otherDeepway.name})`
@@ -136,7 +127,7 @@ const handleInnerYoke = <W extends Wayname, V extends Wayname>(
     })!;
     yokeYokes(getWebByKind(game, firstKind), firstYoke, otherYoke);
   } else {
-    console.log("edgekinds", firstKind, otherKind, "don't match, skipping.");
+    console.debug("edgekinds", firstKind, otherKind, "don't match, skipping.");
   }
 };
 
@@ -149,12 +140,12 @@ const handleOuterYoke = <W extends Wayname>(
   const deepway = reckonEdgeBeforeSpin(brick, shoalway);
   const kind = brick.edges[deepway.name];
   const neighbor = brick.neighbors[shoalway.name];
-  console.log(
+  console.debug(
     `handling outer yoke for ${brick.boardId}.\n` +
       `  shoalway ${shoalway.name} (deep ${deepway.name})`
   );
   if (neighbor === undefined) {
-    console.log(
+    console.debug(
       `making new yoke on canvas-${shoalway.name} (brick-${deepway.name}) edge of,`,
       brick.boardId
     );
@@ -181,23 +172,22 @@ const handleOuterYoke = <W extends Wayname>(
 };
 
 const findYokeByEdge = <N extends Edgename>(game: Game, edge: Edge<N>) => {
-  console.log("looking for edge", edge);
+  console.debug("looking for edge", edge);
   const { kind } = edge;
   const yoke = getWebByKind(game, kind).yokes.find(
     (yoke) => yoke.isOpen && isEdgeInYoke(yoke, edge)
   );
   if (yoke && yoke.isOpen) {
-    console.log("found open yoke", yoke);
+    console.debug("found open yoke", yoke);
     return yoke;
   } else {
-    console.log("no yoke found!");
+    console.debug("no yoke found!");
     return undefined;
   }
 };
 
 const isEdgeInYoke = <N extends Edgename>(yoke: Yoke<N>, edge: Edge<N>) => {
   for (let i = 0; i < yoke.edges.length; i++) {
-    console.log(yoke.edges[i], edge);
     if (
       yoke.edges[i].brickId === edge.brickId &&
       yoke.edges[i].shoalway.name === edge.shoalway.name &&
@@ -210,6 +200,13 @@ const isEdgeInYoke = <N extends Edgename>(yoke: Yoke<N>, edge: Edge<N>) => {
 };
 
 export const isShoalsideOpen = (brick: Brick, shoalway: Shoalway) => {
+  console.log(
+    brick.boardId,
+    "'s neighbor to the",
+    shoalway.name,
+    "is",
+    brick.neighbors ? brick.neighbors[shoalway.name]?.boardId : brick.neighbors
+  );
   return !brick.neighbors || brick.neighbors[shoalway.name] === undefined;
 };
 

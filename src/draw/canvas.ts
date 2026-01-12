@@ -115,6 +115,8 @@ export const withBorrowedContextForText = (
   const oldContext = context;
   Object.assign(context, toCanvasBrush(Stavewit), toCanvasBrush(brush));
 
+  console.log(wend?.winkle);
+
   if (wend) {
     context.save();
     context.translate(wend.navel.x, wend.navel.y);

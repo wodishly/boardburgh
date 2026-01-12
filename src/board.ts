@@ -12,7 +12,7 @@ import {
 } from "./draw/html/type";
 import { Settings } from "./settings";
 import { makeEye, resize, type Eye } from "./draw/eye";
-import { isWaytell, waynameOf, wayPlus } from "./help/way";
+import { isWaytell, toEdgeZ, Waybook, waynameOf, wayPlus } from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
   drawBurghToCanvas,
@@ -25,9 +25,9 @@ import {
 } from "./draw/canvas";
 import { drawDebug, drawDebugOrd, fg } from "./draw/html/div/div";
 import { withCommas, z } from "./help/reckon";
-import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
+import { canvasToWorld, edgebrushOf, worldToCanvas } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
-import { type Maybe } from "./help/type";
+import { ly, type Maybe } from "./help/type";
 import { isChosen, type GameState } from "./state";
 import { updateHandle } from "./draw/handle";
 import { makeSlab, updateSlabs, type Slab } from "./draw/html/div/slab/slab";
@@ -195,6 +195,54 @@ const drawBrick = (game: Game, brick: Brick) => {
   drawBurghToCanvas(canvas.context, wend, brickframe, brick.brickname);
   drawShieldToCanvas(canvas.context, wend, brickframe, brick.brickname);
 
+  const nooks = [
+    z(brickframe.width / 2, brickframe.height / 2, "canvas"),
+    z(-brickframe.width / 2, brickframe.height / 2, "canvas"),
+    z(-brickframe.width / 2, -brickframe.height / 2, "canvas"),
+    z(brickframe.width / 2, -brickframe.height / 2, "canvas"),
+  ];
+
+  for (let i = 0; i < nooks.length; i++) {
+    withBorrowedContextForText(
+      canvas.context,
+      {
+        brush: { fontSize: 15 },
+        wend,
+      },
+      `(${Waybook[i]})`,
+      worldToCanvas(
+        {
+          x: brick.z.x + toEdgeZ(Waybook[i]).x * brickframe.width * (5 / 8),
+          y: brick.z.y + toEdgeZ(Waybook[i]).y * brickframe.height * (5 / 8),
+          kind: "world",
+        },
+        canvas.eye
+      )
+    );
+    // const isOpen = isShoalsideOpen(brick, makeShoalway(Waybook[i]));
+    // withBorrowedContext(
+    //   canvas.context,
+    //   {
+    //     brush: isOpen
+    //       ? { strokeColor: "red", strokeWidth: 8 }
+    //       : edgebrushOf(brick),
+    //     dontFill: true,
+    //     wend,
+    //   },
+    //   (context) => {
+    //     console.log(i, Waybook[i], isOpen);
+    //     context.moveTo(
+    //       nooks[mod(i - 0, nooks.length)].x,
+    //       nooks[mod(i - 0, nooks.length)].y
+    //     );
+    //     context.lineTo(
+    //       nooks[mod(i + 1, nooks.length)].x,
+    //       nooks[mod(i + 1, nooks.length)].y
+    //     );
+    //   }
+    // );
+  }
+
   withBorrowedContext(
     canvas.context,
     { brush: edgebrushOf(brick), dontFill: true, wend },
@@ -205,15 +253,6 @@ const drawBrick = (game: Game, brick: Brick) => {
         brickframe.width,
         brickframe.height
       );
-    }
-  );
-
-  withBorrowedContext(
-    canvas.context,
-    { brush: { fillColor: "red", strokeWidth: 8 }, wend },
-    (context) => {
-      context.moveTo(brickframe.width / 2, -brickframe.height / 2);
-      context.lineTo(brickframe.width / 2, brickframe.height / 2);
     }
   );
 

@@ -125,6 +125,7 @@ export const toEdgeZ = <N extends Wayname>(way: N) => {
   way satisfies never;
 };
 
+// todo: fold this with other canvas sunwiseness sheanigans
 export const toFarthing = (way: Wayname, kind: ZKind) => {
   return (
     ((kind === "canvas" ? 3 - waytellOf(way) : waytellOf(way)) * Math.PI) / 2

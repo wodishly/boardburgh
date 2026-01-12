@@ -276,12 +276,6 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     ) {
       other.state = "nearby";
       neighbors[wayTo(other, brick)] = other;
-      console.log(
-        "i am",
-        brick.boardId,
-        ". neighbor is to",
-        wayTo(other, brick)
-      );
       if (
         neighbors.east &&
         neighbors.north &&
