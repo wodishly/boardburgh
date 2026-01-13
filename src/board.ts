@@ -10,7 +10,7 @@ import {
   type HTMLMake,
   makeWithId,
 } from "./draw/html/type";
-import { Settings } from "./settings";
+import { fg, Settings } from "./settings";
 import { makeEye, resize, type Eye } from "./draw/eye";
 import { isWaytell, toEdgeZ, Waybook, waynameOf, wayPlus } from "./help/way";
 import { getCanvas, type Game } from "./game";
@@ -23,11 +23,11 @@ import {
   withBorrowedContext,
   withBorrowedContextForText,
 } from "./draw/canvas";
-import { drawDebug, drawDebugOrd, fg } from "./draw/html/div/div";
+import { drawDebug, drawDebugOrd } from "./draw/html/div/div";
 import { withCommas, z } from "./help/reckon";
 import { canvasToWorld, edgebrushOf, worldToCanvas } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
-import { ly, type Maybe } from "./help/type";
+import { type Maybe } from "./help/type";
 import { isChosen, type GameState } from "./state";
 import { updateHandle } from "./draw/handle";
 import { makeSlab, updateSlabs, type Slab } from "./draw/html/div/slab/slab";
@@ -207,13 +207,13 @@ const drawBrick = (game: Game, brick: Brick) => {
       canvas.context,
       {
         brush: { fontSize: 15 },
-        wend,
+        wend: { ...wend, winkle: wend.winkle+(i+1)*Math.PI/2 },
       },
       `(${Waybook[i]})`,
       worldToCanvas(
         {
-          x: brick.z.x + toEdgeZ(Waybook[i]).x * brickframe.width * (5 / 8),
-          y: brick.z.y + toEdgeZ(Waybook[i]).y * brickframe.height * (5 / 8),
+          x: brick.z.x + toEdgeZ(Waybook[3]).x * brickframe.width * (5 / 8),
+          y: brick.z.y + toEdgeZ(Waybook[3]).y * brickframe.height * (5 / 8),
           kind: "world",
         },
         canvas.eye

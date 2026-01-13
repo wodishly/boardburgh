@@ -60,9 +60,9 @@ export const edgenameToStaff = <N extends Edgename>(
 
 type Edgetells<N extends Brickname, S extends Edgestaff> = [
   ...(Eaststaff<N> extends S ? [0] : []),
-  ...(Northstaff<N> extends S ? [1] : []),
+  ...(Southstaff<N> extends S ? [1] : []),
   ...(Weststaff<N> extends S ? [2] : []),
-  ...(Southstaff<N> extends S ? [3] : [])
+  ...(Northstaff<N> extends S ? [3] : [])
 ];
 
 export const edgetellsOf = <N extends Brickname, S extends Edgestaff>(
@@ -73,13 +73,13 @@ export const edgetellsOf = <N extends Brickname, S extends Edgestaff>(
   if (east(brickname) === staff) {
     tells.push(0);
   }
-  if (north(brickname) === staff) {
+  if (south(brickname) === staff) {
     tells.push(1);
   }
   if (west(brickname) === staff) {
     tells.push(2);
   }
-  if (south(brickname) === staff) {
+  if (north(brickname) === staff) {
     tells.push(3);
   }
   return tells as N extends any ? Override<Edgetells<N, S>> : never;

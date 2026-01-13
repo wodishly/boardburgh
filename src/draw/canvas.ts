@@ -20,9 +20,10 @@ import {
   wayNext,
   toEdgeZ,
   type Waytell,
-  toFarthing,
   Waybook,
   waytellOf,
+  toCanvasFarthing,
+  wayBefore,
 } from "../help/way";
 import {
   reckonChurch,
@@ -114,8 +115,6 @@ export const withBorrowedContextForText = (
 
   const oldContext = context;
   Object.assign(context, toCanvasBrush(Stavewit), toCanvasBrush(brush));
-
-  console.log(wend?.winkle);
 
   if (wend) {
     context.save();
@@ -221,23 +220,15 @@ export const drawRoadToCanvas = (
             (nookZ.x * brickframe.width) / 2,
             (nookZ.y * brickframe.height) / 2,
             halfwidths[0],
-            (Math.PI / 2) *
-              (2 * +(edgetells[0] === 1) +
-                waytellOf(wayNext(waynameOf(edgetells[0])))),
-            (Math.PI / 2) *
-              (2 * +(edgetells[0] === 1) +
-                waytellOf(wayNext(waynameOf(edgetells[1]))))
+            (Math.PI / 2) * (2 + waytellOf(waynameOf(edgetells[0]))),
+            (Math.PI / 2) * (2 + waytellOf(waynameOf(edgetells[1])))
           );
           context.arc(
             (nookZ.x * brickframe.width) / 2,
             (nookZ.y * brickframe.height) / 2,
             halfwidths[1],
-            (Math.PI / 2) *
-              (2 * +(edgetells[0] === 1) +
-                waytellOf(wayNext(waynameOf(edgetells[1])))),
-            (Math.PI / 2) *
-              (2 * +(edgetells[0] === 1) +
-                waytellOf(wayNext(waynameOf(edgetells[0])))),
+            (Math.PI / 2) * (2 + waytellOf(waynameOf(edgetells[1]))),
+            (Math.PI / 2) * (2 + waytellOf(waynameOf(edgetells[0]))),
             true
           );
         }
@@ -341,9 +332,10 @@ export const drawBurghToCanvas = (
                 navel.x,
                 navel.y,
                 (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
-                -Math.PI / 4 +
-                  toFarthing(wayNext(waynameOf(edgetells[i])), "canvas"),
-                -Math.PI / 4 + toFarthing(waynameOf(edgetells[i]), "canvas")
+                Math.PI / 4 +
+                  toCanvasFarthing(wayNext(waynameOf(edgetells[i]))),
+                Math.PI / 4 + toCanvasFarthing(waynameOf(edgetells[i])),
+                true
               );
             }
           }
@@ -384,8 +376,9 @@ export const drawBurghToCanvas = (
                 edges[0].x * brickframe.width,
                 edges[0].y * brickframe.height,
                 (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
-                Math.PI / 4,
-                (Math.PI * 3) / 4
+                (Math.PI * 7) / 4,
+                (Math.PI * 5) / 4,
+                true
               );
               context.lineTo(
                 (nooks[2].x * brickframe.width) / 2,
@@ -395,8 +388,9 @@ export const drawBurghToCanvas = (
                 edges[1].x * brickframe.width,
                 edges[1].y * brickframe.height,
                 (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
-                (Math.PI * 5) / 4,
-                (Math.PI * 7) / 4
+                (Math.PI * 3) / 4,
+                (Math.PI * 1) / 4,
+                true
               );
             }
           }
@@ -449,9 +443,10 @@ export const drawBurghToCanvas = (
             navel.x,
             navel.y,
             (brickframe.width + brickframe.height) / 2 / Math.sqrt(2),
-            -Math.PI / 4 +
-              toFarthing(wayNext(waynameOf(edgetells[0])), "canvas"),
-            -Math.PI / 4 + toFarthing(waynameOf(edgetells[0]), "canvas")
+            Math.PI + -Math.PI / 4 + toCanvasFarthing(waynameOf(edgetells[0])),
+            Math.PI +
+              -Math.PI / 4 +
+              toCanvasFarthing(wayNext(waynameOf(edgetells[0])))
           );
         }
       );

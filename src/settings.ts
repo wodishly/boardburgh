@@ -1,5 +1,17 @@
 import type { Brush } from "./draw/brush";
 
+export const fg = () => {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "white"
+    : "black";
+};
+
+export const bg = () => {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "black"
+    : "white";
+};
+
 export const Settings = {
   brickLength: 128,
   neighborThreshold: 1 / 8,
@@ -24,7 +36,7 @@ Brushwit satisfies Record<string, Partial<Brush>>;
 export const Stavewit = {
   fontSize: 20,
   fontFace: "sans-serif",
-  fillColor: "black",
+  fillColor: fg(),
   strokeColor: "red",
   textAlign: "center",
   textBaseline: "middle",

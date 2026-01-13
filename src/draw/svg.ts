@@ -130,7 +130,7 @@ export const drawSVGBrickshape = (
             ` ` +
             `A${withSpaces(
               zTimes(greatness, (1 + Settings.draw.roadHalfwidth) / 2)
-            )} 90 0 1 ${withSpaces({
+            )} 90 0 0 ${withSpaces({
               ...zLerp(nook, end, 1 + Settings.draw.roadHalfwidth),
               kind: "svg",
             })}` +
@@ -142,7 +142,7 @@ export const drawSVGBrickshape = (
             ` ` +
             `A${withSpaces(
               zTimes(greatness, (1 - Settings.draw.roadHalfwidth) / 2)
-            )} 90 0 0 ${withSpaces({
+            )} 90 0 1 ${withSpaces({
               ...zLerp(nook, start, 1 - Settings.draw.roadHalfwidth),
               kind: "svg",
             })}` +
@@ -187,7 +187,7 @@ export const drawSVGBrickshape = (
           svgPath.push(`L${withSpaces(nook)}`);
         } else {
           svgPath.push(
-            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nook)}`
+            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 0 ${withSpaces(nook)}`
           );
         }
       }
@@ -224,7 +224,7 @@ export const drawSVGBrickshape = (
             svgPath.push(`L${withSpaces(nook)}`);
           } else {
             svgPath.push(
-              `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withSpaces(nook)}`
+              `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 0 ${withSpaces(nook)}`
             );
           }
         }
@@ -244,7 +244,7 @@ export const drawSVGBrickshape = (
           d:
             `M${withSpaces(toNookZ(Waybook[edgetells[0]]))}` +
             ` ` +
-            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 1 ${withCommas(
+            `A${Math.sqrt(2)} ${Math.sqrt(2)} -90 0 0 ${withCommas(
               toNookZ(wayNext(Waybook[edgetells[0]]))
             )}` +
             ` ` +

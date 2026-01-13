@@ -1,4 +1,3 @@
-import { makeDeckslab, type Deckslab } from "./slab/deckslab";
 import type { GameState } from "../../../state";
 import {
   type BoardCanvas,
@@ -11,6 +10,7 @@ import { type ElementWithId, makeWithId } from "../type";
 import { canvasToWorld, worldToCanvas } from "../../brush";
 import { ringdeal } from "../../canvas";
 import { getCanvas, type Game } from "../../../game";
+import { bg, fg } from "../../../settings";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
   boardframeDiv: BoardframeDiv;
@@ -109,16 +109,4 @@ export const drawDebugOrd = (
     screenZ.x,
     screenZ.y + 10
   );
-};
-
-export const fg = () => {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "white"
-    : "black";
-};
-
-export const bg = () => {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "black"
-    : "white";
 };
