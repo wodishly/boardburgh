@@ -166,6 +166,7 @@ export const handleBrick = (game: Game, brick: Brick, now: number) => {
   ) {
     handleDrag(game, brick as Override<Brick<"drag">>);
   } else if (
+    isHot(brick) &&
     isMouseInBrick(game, brick) &&
     !game.state.handle.mouse.layer.includes("slab") &&
     (!game.state.chosen || game.state.chosen === brick)
@@ -188,7 +189,7 @@ export const handleBrick = (game: Game, brick: Brick, now: number) => {
       brick.state = "hover2";
       chooseBrick(game.state, brick);
     } else {
-      // console.log("fallthrough for", brick.state, mouse.move, mouse.knob);
+      console.log("fallthrough for", brick.state, mouse.move, mouse.knob);
     }
   } else {
     if (brick.state === "hover2") {
@@ -196,9 +197,7 @@ export const handleBrick = (game: Game, brick: Brick, now: number) => {
       unchooseBrick(game.state);
     }
     brick.state = isHot(brick) ? "live" : "frozen";
-  }
-  if (mouse.move !== undefined || mouse.knob !== "mouseup") {
-    // console.warn(brick.state, mouse.move, mouse.knob);
+    brick.neighbors = makeWayward(() => undefined);
   }
 };
 
@@ -285,6 +284,7 @@ const handleDrap = (game: Game, brick: Brick<Exclude<Chosen, "spin">>) => {
           Math.abs(dz.x) < Settings.neighborThreshold))
     ) {
       other.state = "nearby";
+      console.log(other.boardId, other.state);
       neighbors[wayTo(other, brick)] = other;
       if (
         neighbors.east &&
@@ -332,19 +332,19 @@ const handleDrap = (game: Game, brick: Brick<Exclude<Chosen, "spin">>) => {
       throw new Error("bad neighbor");
     }
   }
-  // brick.neighbors = neighbors;
-  // if (neighbors.east) {
-  //   neighbors.east.neighbors.west = brick;
-  // }
-  // if (neighbors.south) {
-  //   neighbors.south.neighbors.north = brick;
-  // }
-  // if (neighbors.west) {
-  //   neighbors.west.neighbors.east = brick;
-  // }
-  // if (neighbors.north) {
-  //   neighbors.north.neighbors.south = brick;
-  // }
+  brick.neighbors = neighbors;
+  if (neighbors.east) {
+    neighbors.east.neighbors.west = brick as Override<any>;
+  }
+  if (neighbors.south) {
+    neighbors.south.neighbors.north = brick as Override<any>;
+  }
+  if (neighbors.west) {
+    neighbors.west.neighbors.east = brick as Override<any>;
+  }
+  if (neighbors.north) {
+    neighbors.north.neighbors.south = brick as Override<any>;
+  }
 };
 
 /**

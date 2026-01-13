@@ -130,7 +130,7 @@ export const reckonShield = <K extends "canvas" | "svg">(
   return {
     x: x + (width * 11) / 16,
     y:
-      brickname[0] === "b" && brickname[1] !== "b" && brickname[2] === "b"
+      brickname[0] === "b" && brickname[3] !== "b" && brickname[2] === "b"
         ? y + (height * 3) / 8
         : y + (height * 1) / 16,
     kind: bricknooks.kind,

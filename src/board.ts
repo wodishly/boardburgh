@@ -1,7 +1,9 @@
 import {
   handleBrick,
   isBrick,
+  isCold,
   isInState,
+  reckonEdgeAfterSpin,
   wayTo,
   type Brick,
 } from "./brick/brickstate";
@@ -18,6 +20,7 @@ import {
   Waybook,
   wayMinus,
   waynameOf,
+  wayPlus,
   type Waytell,
 } from "./help/way";
 import { getCanvas, type Game } from "./game";
@@ -298,9 +301,13 @@ const drawBrick = (game: Game, brick: Brick) => {
     );
     for (let i = 0; i < nooks.length; i++) {
       if (
-        brick.neighbors === undefined ||
-        brick.neighbors[waynameOf(i as Override<Waytell>)] === undefined
+        isCold(brick) &&
+        brick.neighbors[
+          wayPlus(waynameOf(i as Override<Waytell>), waynameOf(brick.farthings))
+        ] !== undefined
       ) {
+        // todo
+      } else {
         withBorrowedContextForText(
           canvas.context,
           {
@@ -318,7 +325,6 @@ const drawBrick = (game: Game, brick: Brick) => {
             canvas.eye
           )
         );
-      } else {
       }
     }
   }
