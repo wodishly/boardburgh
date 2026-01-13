@@ -73,6 +73,8 @@ export const updateAllweb = (game: Game, brick: Brick<Cold>) => {
   handleInnerYoke(game, brick, "north", "west");
   handleInnerYoke(game, brick, "north", "south");
   handleInnerYoke(game, brick, "west", "south");
+
+  console.log(game.state.allweb);
 };
 
 const yokeYokes = <E extends Edgename>(

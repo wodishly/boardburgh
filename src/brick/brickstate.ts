@@ -1,5 +1,5 @@
 import { type Brickshape, isBrickshape } from "./brickshape";
-import { mod, zMinus, zTimes, type Z, type Zful } from "../help/reckon";
+import { mod, zFarth, zMinus, zTimes, type Z, type Zful } from "../help/reckon";
 import {
   isObject,
   only,
@@ -68,11 +68,15 @@ type BrickChoose = {
   brickZ: Z<"canvas">; // starting z
   brickW: Winkle; // starting winkle
   clickZ: Z<"canvas">; // z of mouse click
+  clickT: number;
 };
 
 /**
  * @param deepedge the wayname of the edge to the world
  * @returns the wayname of the edge to the brick
+ *
+ * This has now been implemented, but it was an ordeal.
+ * We leave this note here out of remembrance.
  *
  * Note that the winding way has to be flipped (using
  * `wayMinus` instead of `wayPlus`, since canvas goes
@@ -83,14 +87,14 @@ export const reckonEdgeAfterSpin = (
   brick: Brick<Exclude<Brickstate, "spin">>,
   { name }: Deepway
 ): Shoalway => {
-  return { name: wayMinus(name, waynameOf(brick.farthings)), kind: "world" };
+  return { name: wayPlus(name, waynameOf(brick.farthings)), kind: "world" };
 };
 
 export const reckonEdgeBeforeSpin = (
   brick: Brick<Exclude<Brickstate, "spin">>,
   { name }: Shoalway
 ): Deepway => {
-  return { name: wayPlus(name, waynameOf(brick.farthings)), kind: "brick" };
+  return { name: wayMinus(name, waynameOf(brick.farthings)), kind: "brick" };
 };
 
 export const isBrickState = (x: unknown): x is Brickstate => {
@@ -130,7 +134,7 @@ export const freeze = (game: Game, brick: Brick) => {
   updateAllweb(game, brick as Override<Brick<Cold>>);
 };
 
-export const handleBrick = (game: Game, brick: Brick) => {
+export const handleBrick = (game: Game, brick: Brick, now: number) => {
   const mouse = game.state.handle.mouse;
 
   if (brick.state === "drop" && mouse.knob === "mouseup") {
@@ -145,10 +149,13 @@ export const handleBrick = (game: Game, brick: Brick) => {
   } else if (brick.state === "spin" && mouse.knob === "mouseup") {
     brick.state = "drop";
     brick.farthings = mod(Math.round(brick.farthings), 4);
-  } else if (brick.state === "choose" && mouse.move === "mousemove") {
-    brick.state = "spin";
   } else if (brick.state === "choose" && mouse.knob === "mouseup") {
     brick.state = "drag";
+  } else if (
+    brick.state === "choose" &&
+    zFarth(mouse.z, brick.choose!.clickZ) >= Settings.dragBecomesSpin
+  ) {
+    brick.state = "spin";
   } else if (
     (brick.state === "spin" && mouse.knob === "mousedown") ||
     (brick.state === "spin" && mouse.move === "mousemove")
@@ -171,6 +178,7 @@ export const handleBrick = (game: Game, brick: Brick) => {
         brickZ: worldToCanvas(brick.z, getEye(game)),
         brickW: (brick.farthings * Math.PI) / 2,
         clickZ: mouse.z,
+        clickT: now,
       };
     } else if (brick.state === "live" && mouse.move === "mousemove") {
       brick.state = "hover2";
@@ -189,6 +197,9 @@ export const handleBrick = (game: Game, brick: Brick) => {
       unchooseBrick(game.state);
     }
     brick.state = isHot(brick) ? "live" : "frozen";
+  }
+  if (mouse.move !== undefined || mouse.knob !== "mouseup") {
+    // console.warn(brick.state, mouse.move, mouse.knob);
   }
 };
 

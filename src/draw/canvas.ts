@@ -23,7 +23,6 @@ import {
   Waybook,
   waytellOf,
   toCanvasFarthing,
-  wayBefore,
 } from "../help/way";
 import {
   reckonChurch,

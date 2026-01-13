@@ -15,6 +15,7 @@ export const bg = () => {
 export const Settings = {
   brickLength: 128,
   neighborThreshold: 1 / 8,
+  dragBecomesSpin: 32,
   friendTell: 7,
   draw: {
     roadHalfwidth: 0.15,

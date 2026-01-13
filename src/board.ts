@@ -12,7 +12,7 @@ import {
 } from "./draw/html/type";
 import { fg, Settings } from "./settings";
 import { makeEye, resize, type Eye } from "./draw/eye";
-import { isWaytell, toEdgeZ, Waybook, waynameOf, wayPlus } from "./help/way";
+import { isWaytell, toEdgeZ, Waybook, wayMinus, waynameOf } from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
   drawBurghToCanvas,
@@ -123,8 +123,8 @@ export const doesWeave = (brick: Brick, other: Brick) => {
   return (
     isWaytell(brick.farthings) &&
     isWaytell(other.farthings) &&
-    brick.edges[wayPlus(wayTo(other, brick), waynameOf(brick.farthings))] ===
-      other.edges[wayPlus(wayTo(brick, other), waynameOf(other.farthings))]
+    brick.edges[wayMinus(wayTo(other, brick), waynameOf(brick.farthings))] ===
+      other.edges[wayMinus(wayTo(brick, other), waynameOf(other.farthings))]
   );
 };
 
@@ -133,7 +133,7 @@ export const updateBoard = (game: Game, now: number) => {
 
   for (const thing of [...game.state.boardlist, game.state.chosen].reverse()) {
     if (isBrick(thing)) {
-      handleBrick(game, thing);
+      handleBrick(game, thing, now);
     }
   }
 
@@ -153,9 +153,6 @@ export const drawBoard = (game: Game) => {
   if (isBrick(game.state.chosen)) {
     drawChosen(game, game.state.chosen);
   }
-  // for (let i = 0; i < canvas.slabDivs.length; i++) {
-  //   drawSlab(game, canvas.slabDivs[i]);
-  // }
   drawDebug(game);
 };
 
@@ -207,7 +204,7 @@ const drawBrick = (game: Game, brick: Brick) => {
       canvas.context,
       {
         brush: { fontSize: 15 },
-        wend: { ...wend, winkle: wend.winkle+(i+1)*Math.PI/2 },
+        wend: { ...wend, winkle: wend.winkle + ((i + 1) * Math.PI) / 2 },
       },
       `(${Waybook[i]})`,
       worldToCanvas(
