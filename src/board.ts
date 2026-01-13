@@ -199,46 +199,29 @@ const drawBrick = (game: Game, brick: Brick) => {
     z(brickframe.width / 2, -brickframe.height / 2, "canvas"),
   ];
 
-  for (let i = 0; i < nooks.length; i++) {
-    withBorrowedContextForText(
-      canvas.context,
-      {
-        brush: { fontSize: 15 },
-        wend: { ...wend, winkle: wend.winkle + ((i + 1) * Math.PI) / 2 },
-      },
-      `(${Waybook[i]})`,
-      worldToCanvas(
-        {
-          x: brick.z.x + toEdgeZ(Waybook[3]).x * brickframe.width * (5 / 8),
-          y: brick.z.y + toEdgeZ(Waybook[3]).y * brickframe.height * (5 / 8),
-          kind: "world",
-        },
-        canvas.eye
-      )
-    );
-    // const isOpen = isShoalsideOpen(brick, makeShoalway(Waybook[i]));
-    // withBorrowedContext(
-    //   canvas.context,
-    //   {
-    //     brush: isOpen
-    //       ? { strokeColor: "red", strokeWidth: 8 }
-    //       : edgebrushOf(brick),
-    //     dontFill: true,
-    //     wend,
-    //   },
-    //   (context) => {
-    //     console.log(i, Waybook[i], isOpen);
-    //     context.moveTo(
-    //       nooks[mod(i - 0, nooks.length)].x,
-    //       nooks[mod(i - 0, nooks.length)].y
-    //     );
-    //     context.lineTo(
-    //       nooks[mod(i + 1, nooks.length)].x,
-    //       nooks[mod(i + 1, nooks.length)].y
-    //     );
-    //   }
-    // );
-  }
+  // const isOpen = isShoalsideOpen(brick, makeShoalway(Waybook[i]));
+  // withBorrowedContext(
+  //   canvas.context,
+  //   {
+  //     brush: isOpen
+  //       ? { strokeColor: "red", strokeWidth: 8 }
+  //       : edgebrushOf(brick),
+  //     dontFill: true,
+  //     wend,
+  //   },
+  //   (context) => {
+  //     console.log(i, Waybook[i], isOpen);
+  //     context.moveTo(
+  //       nooks[mod(i - 0, nooks.length)].x,
+  //       nooks[mod(i - 0, nooks.length)].y
+  //     );
+  //     context.lineTo(
+  //       nooks[mod(i + 1, nooks.length)].x,
+  //       nooks[mod(i + 1, nooks.length)].y
+  //     );
+  //   }
+  // );
+  // }
 
   withBorrowedContext(
     canvas.context,
@@ -329,5 +312,23 @@ const drawBrick = (game: Game, brick: Brick) => {
         canvas.eye
       )
     );
+    for (let i = 0; i < nooks.length; i++) {
+      withBorrowedContextForText(
+        canvas.context,
+        {
+          brush: { fontSize: 15 },
+          wend: { ...wend, winkle: wend.winkle + ((i + 1) * Math.PI) / 2 },
+        },
+        `(${Waybook[i]})`,
+        worldToCanvas(
+          {
+            x: brick.z.x + toEdgeZ(Waybook[3]).x * brickframe.width * (5 / 8),
+            y: brick.z.y + toEdgeZ(Waybook[3]).y * brickframe.height * (5 / 8),
+            kind: "world",
+          },
+          canvas.eye
+        )
+      );
+    }
   }
 };
