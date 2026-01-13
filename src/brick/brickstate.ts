@@ -50,11 +50,7 @@ export type Brick<
   Zful<"world"> & {
     boardId: BoardId;
     farthings: S extends "spin" ? number : 0 | 1 | 2 | 3;
-    neighbors: S extends Cold
-      ? Wayward<Maybe<Brick<Cold, Brickname>>>
-      : S extends OnBoard
-      ? Maybe<Wayward<Maybe<Brick<Cold, Brickname>>>>
-      : undefined;
+    neighbors: Wayward<Maybe<Brick<Cold, Brickname>>>;
     isSnapped: S extends Cold ? true : S extends "fresh" ? false : boolean;
     state: S;
     choose: S extends Chosen ? BrickChoose : undefined;
@@ -127,7 +123,10 @@ export const isCold = (brick: Brick): brick is Brick<Cold> => {
   return brick.state === "nearby" || brick.state === "frozen";
 };
 
-export const freeze = (game: Game, brick: Brick) => {
+export const freeze = (
+  game: Game,
+  brick: Brick<Exclude<Brickstate, "spin">>
+) => {
   brick.state = "frozen";
   brick.choose = undefined;
   brick.isSnapped = true;
@@ -139,7 +138,7 @@ export const handleBrick = (game: Game, brick: Brick, now: number) => {
 
   if (brick.state === "drop" && mouse.knob === "mouseup") {
     if (brick.isSnapped) {
-      freeze(game, brick);
+      freeze(game, brick as Override<any>);
     } else {
       brick.state = "live";
     }
@@ -249,7 +248,7 @@ const handleSpin = (game: Game, brick: Brick<Chosen>) => {
   }
 };
 
-const handleDrag = (game: Game, brick: Brick<Chosen>) => {
+const handleDrag = (game: Game, brick: Brick<Exclude<Chosen, "spin">>) => {
   const mouse = game.state.handle.mouse;
   if (!brick.choose) return;
   const dragStartWorldZ = canvasToWorld(brick.choose.brickZ, getEye(game));
@@ -268,7 +267,7 @@ const handleDrag = (game: Game, brick: Brick<Chosen>) => {
   }
 };
 
-const handleDrap = (game: Game, brick: Brick<Chosen>) => {
+const handleDrap = (game: Game, brick: Brick<Exclude<Chosen, "spin">>) => {
   const boardlist = game.state.boardlist;
   const neighbors: Wayward<Maybe<NeighborBrick>> = makeWayward(() => undefined);
 
@@ -333,7 +332,19 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
       throw new Error("bad neighbor");
     }
   }
-  brick.neighbors = neighbors;
+  // brick.neighbors = neighbors;
+  // if (neighbors.east) {
+  //   neighbors.east.neighbors.west = brick;
+  // }
+  // if (neighbors.south) {
+  //   neighbors.south.neighbors.north = brick;
+  // }
+  // if (neighbors.west) {
+  //   neighbors.west.neighbors.east = brick;
+  // }
+  // if (neighbors.north) {
+  //   neighbors.north.neighbors.south = brick;
+  // }
 };
 
 /**

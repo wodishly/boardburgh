@@ -2,15 +2,12 @@
   - make deckframe a canvas object
   - make bricks spawn on deckframe and have two hover states
   - understand why `withBorrowedContext` makes things offset inside the `CanvasDraw` call
-- brick
-  - crrf
-- snap needs to check if there is already a brick there
-- spinning is totally broken
-- handle
-  - mousedowns and mouseups are sometimes dont respond,
-    maybe has to do with not checking the resulting state until the next frame
-    - this can be deathly if a brick gets stuck in the chosen of the game state
 - screen translation
   - zoom
 - meeples
 - other screens / devices
+- web
+  - knowing when something is closed
+  - fields
+  - scoring
+  - frozen neighbors don't add bricks back
