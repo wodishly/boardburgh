@@ -43,7 +43,7 @@ const makeRowTr = (
 };
 
 export const makeWorthslab: HTMLMake<Worthslab> = (gameState) => {
-  const worthslab = makeSlab(gameState, "worthslab");
+  const worthslab = makeSlab(gameState, "worthslab", "", false);
 
   const h4 = document.createElement("h4");
   h4.innerHTML = "here r ur worths";

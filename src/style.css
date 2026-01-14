@@ -45,7 +45,7 @@ div#game {
 
 div#boardframe,
 div#deckslab,
-div#friendslab {
+div#houseslab {
   position: absolute;
 }
 
@@ -132,13 +132,13 @@ div#deal {
   transition: 0.2s;
 }
 
-#deckslab button:hover {
+#deckslab button:hover:enabled {
   background: lightgrey;
   box-shadow: 0px 0px 4px inset black;
   cursor: pointer;
 }
 
-#deckslab button:active {
+#deckslab button:active:enabled {
   background: grey;
 }
 
@@ -148,36 +148,36 @@ div#deal {
   stroke-width: 0.075;
 }
 
-#keyslab {
+#helpslab {
   bottom: 1rem;
   left: 1rem;
 }
 
-#keyslab ul {
+#helpslab ul {
   padding: 0.5rem 1rem;
 }
 
-#keyslab li {
+#helpslab li {
   padding-bottom: 0.125rem;
 }
 
-#keyslab li strong {
+#helpslab li strong {
   display: inline-block;
   padding-right: 0.25rem;
 }
 
-#friendslab {
+#houseslab {
   top: 1rem;
   right: 1rem;
 }
 
-div#friendslab h4,
+div#houseslab h4,
 div#worthslab h4 {
   text-align: center;
   margin-bottom: 0.5rem;
 }
 
-div#friendslab div#house {
+div#houseslab div#house {
   border: 1px solid var(--fg);
   background: var(--inset);
   width: 16rem;
@@ -185,7 +185,7 @@ div#friendslab div#house {
 }
 
 div#worthslab {
-  bottom: 1rem;
+  bottom: 2rem;
   right: 1rem;
 }
 
@@ -209,4 +209,20 @@ kbd {
   padding: 2px;
   font-family: monospace;
   background: var(--inset);
+}
+
+span#slablist {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  user-select: none;
+}
+
+span#slablist a {
+  margin: 0 0.125rem;
+}
+
+span#slablist a:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }

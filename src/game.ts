@@ -23,15 +23,19 @@ export const makeGame = (): Game => {
 
 export const startGame = (game: Game) => {
   const first = dealBrick(game.state, 0);
-  first.z = { x: 768, y: 512, kind: "world" };
-  freeze(game, first);
+  if (first === undefined) {
+    console.error("there are no bricks in this deck wtf");
+  } else {
+    first.z = { x: 768, y: 512, kind: "world" };
+    freeze(game, first);
 
-  updateDeckslabWith(
-    game.state,
-    game.div.boardframeDiv.slabs.deckslab.laveSpan,
-    game.div.boardframeDiv.slabs.deckslab.tallyDiv,
-    runTally(game.state)
-  );
+    updateDeckslabWith(
+      game.state,
+      game.div.boardframeDiv.slabs.deckslab.laveSpan,
+      game.div.boardframeDiv.slabs.deckslab.tallyDiv,
+      runTally(game.state)
+    );
+  }
 };
 
 export const updateGame: GameUpdate = (game: Game, now: number) => {

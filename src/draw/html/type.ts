@@ -7,13 +7,14 @@ export type HTMLKey = keyof HTMLElementTagNameMap;
 type HTMLValue<K extends HTMLKey = HTMLKey> = HTMLElementTagNameMap[K];
 export type HTMLId =
   | "game"
+  | "slablist"
   | "boardframe"
   | "board"
   | "deckslab"
   | "tally"
   | "lave"
   | "deal"
-  | "friendslab"
+  | "houseslab"
   | "house"
   | KnobId
   | SlabId

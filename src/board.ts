@@ -42,7 +42,7 @@ import { isChosen, type GameState } from "./state";
 import { updateHandle } from "./draw/handle";
 import { makeSlab, updateSlabs, type Slab } from "./draw/html/div/slab/slab";
 import { makeDeckslab, type Deckslab } from "./draw/html/div/slab/deckslab";
-import { makeFriendslab } from "./draw/html/div/slab/friendslab";
+import { makeHouseslab } from "./draw/html/div/slab/houseslab";
 import { makeWorthslab } from "./draw/html/div/slab/worthslab";
 import { isShoalsideOpen, makeShoalway } from "./web";
 
@@ -54,10 +54,10 @@ export type BoardCanvas = ElementWithId<"canvas", "board"> & {
 export type BoardframeDiv = ElementWithId<"div", "boardframe"> & {
   boardCanvas: BoardCanvas;
   slabs: {
-    keyslab: Slab<"keyslab">;
     deckslab: Deckslab;
-    friendslab: Slab<"friendslab">;
+    houseslab: Slab<"houseslab">;
     worthslab: Slab<"worthslab">;
+    helpslab: Slab<"helpslab">;
   };
 };
 
@@ -73,10 +73,10 @@ export const makeBoardframeDiv: HTMLMake<BoardframeDiv> = (gameState) => {
   const eye = makeEye(gameState.handle, almostBoardCanvas);
 
   const slabs = {
-    keyslab: makeKeyslab(gameState),
     deckslab: makeDeckslab(gameState),
-    friendslab: makeFriendslab(gameState),
+    houseslab: makeHouseslab(gameState),
     worthslab: makeWorthslab(gameState),
+    helpslab: makeHelpslab(gameState),
   };
   for (const slab of Object.values(slabs)) {
     almostBoardframeDiv.element.append(slab.element);
@@ -97,10 +97,10 @@ export const makeBoardframeDiv: HTMLMake<BoardframeDiv> = (gameState) => {
   };
 };
 
-const makeKeyslab = (gameState: GameState) => {
+const makeHelpslab = (gameState: GameState) => {
   return makeSlab(
     gameState,
-    "keyslab",
+    "helpslab",
     "<h4>world</h4>" +
       "<ul>" +
       "<li><kbd>l</kbd> for leechsight</li>" +

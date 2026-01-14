@@ -54,7 +54,8 @@ export const runTally = (gameState: GameState): Tally => {
 export const dealBrick = (gameState: GameState, _now: number) => {
   const brickshape = gameState.deck.bricklist.shift();
   if (!brickshape) {
-    throw new Error("bad deal");
+    console.error("no more bricks");
+    return;
   }
   const brick = Object.assign(brickshape, {
     boardId: nextId(gameState),

@@ -13,3 +13,4 @@
   - frozen neighbors don't add bricks back
   - `Override<any>` :(
   - debug modo state doesnt show `nearby` state
+- swap drag and spin
