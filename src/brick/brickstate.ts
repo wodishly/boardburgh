@@ -189,7 +189,7 @@ export const handleBrick = (game: Game, brick: Brick, now: number) => {
       brick.state = "hover2";
       chooseBrick(game.state, brick);
     } else {
-      console.log("fallthrough for", brick.state, mouse.move, mouse.knob);
+      // console.log("fallthrough for", brick.state, mouse.move, mouse.knob);
     }
   } else {
     if (brick.state === "hover2") {
@@ -284,7 +284,6 @@ const handleDrap = (game: Game, brick: Brick<Exclude<Chosen, "spin">>) => {
           Math.abs(dz.x) < Settings.neighborThreshold))
     ) {
       other.state = "nearby";
-      console.log(other.boardId, other.state);
       neighbors[wayTo(other, brick)] = other;
       if (
         neighbors.east &&

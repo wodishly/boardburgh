@@ -226,3 +226,13 @@ span#slablist a:hover {
   text-decoration: underline;
   cursor: pointer;
 }
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+a:visited {
+  color: inherit;
+  text-decoration: inherit;
+}

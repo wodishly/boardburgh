@@ -63,6 +63,9 @@ export const wakeHandle = (
   window.addEventListener("resize", () => {
     resize(boardCanvas);
   });
+  window.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+  });
   window.addEventListener("mousedown", (e) => {
     handle.mouse.z = { x: e.clientX, y: e.clientY, kind: "canvas" };
     handle.mouse.knob = "mousedown";
