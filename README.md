@@ -1,4 +1,4 @@
-hi! i'm boardburgh /bɔrbrə/, said like the name "barbara" but with an <o> instead of the first <a>. im a browser implementation of the board game [carcassonne](https://carcassonnegame.com/). im written in [typescript](https://www.typescriptlang.org/) and drawn with the [canvas api](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API).
+hi! i'm boardburgh /bɔrbrə/, said like the name "barbara" but with an "o" instead of the first "a". im a browser implementation of the board game [carcassonne](https://carcassonnegame.com/). im written in [typescript](https://www.typescriptlang.org/) and drawn with the [canvas api](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API).
 
 to build me:
 ```sh
