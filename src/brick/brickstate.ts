@@ -203,23 +203,21 @@ const handleSpin = <P extends "pointerdown" | "pointermove">(
 };
 
 const handleDrag = (game: Game, mouse: Mouse, brick: Brick<Chosen>) => {
-  const dragStartWorldZ = canvasToWorld(brick.choose.brickZ, getEye(game));
-  brick.z = {
-    x: mouse.pointer.z.x - brick.choose.clickZ.x + dragStartWorldZ.x,
-    // todo: understand why these deleting two lines fixes panning whilst dragging
-    // game.div.boardframeDiv.boardCanvas.eye.pan.x +
-    // brick.drag.panOffset.x,
-    y: mouse.pointer.z.y - brick.choose.clickZ.y + dragStartWorldZ.y,
-    // game.div.boardframeDiv.boardCanvas.eye.pan.y +
-    // brick.drag.panOffset.y,
-    kind: "world",
-  };
+  const eye = getEye(game);
+  brick.z = canvasToWorld(
+    {
+      x: mouse.pointer.z.x - brick.choose.clickZ.x + brick.choose.brickZ.x,
+      y: mouse.pointer.z.y - brick.choose.clickZ.y + brick.choose.brickZ.y,
+      kind: "canvas",
+    },
+    eye
+  );
   if (!isShiftDown(game.state.handle.eater)) {
-    handleDragsnap(game, brick);
+    handleDrap(game, brick);
   }
 };
 
-const handleDragsnap = (game: Game, brick: Brick<Chosen>) => {
+const handleDrap = (game: Game, brick: Brick<Chosen>) => {
   const boardlist = game.state.boardlist;
   const neighbors: Wayward<Maybe<Brick>> = makeWayward(() => undefined);
 

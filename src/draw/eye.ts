@@ -1,10 +1,9 @@
 import type { BoardCanvas } from "../board";
 import type { Z } from "../help/reckon";
-import { isShiftDown } from "../key";
 import { type Handle } from "./handle";
 
 export type Eye = {
-  zoom: { scale: number; navel: Z<"canvas"> };
+  zoom: { scale: number; oldNavel: Z<"canvas">; newNavel: Z<"canvas"> };
   pan: Z<"canvas">;
   greatness: Z<"canvas">;
 };
@@ -14,7 +13,11 @@ export const makeEye = (
   almostBoardCanvas: Pick<BoardCanvas, "element">
 ): Eye => {
   const eye = {
-    zoom: { scale: 1, navel: { x: 0, y: 0, kind: "canvas" as const } },
+    zoom: {
+      scale: 1,
+      oldNavel: { x: 0, y: 0, kind: "canvas" as const },
+      newNavel: { x: 0, y: 0, kind: "canvas" as const },
+    },
     pan: { x: 0, y: 0, kind: "canvas" as const },
     greatness: {
       x: almostBoardCanvas.element.width,
@@ -28,8 +31,9 @@ export const makeEye = (
 export const setEye = (eye: Eye, handle: Handle): Eye => {
   const wheelZ = handle.mouse.wheel.z;
   if (handle.mouse.wheel.ctrlKey) {
-    eye.zoom.navel = handle.mouse.pointer.z;
-    eye.zoom.scale -= wheelZ.y / 1000;
+    eye.zoom.oldNavel = eye.zoom.newNavel;
+    eye.zoom.newNavel = handle.mouse.pointer.z;
+    eye.zoom.scale -= wheelZ.y / 512;
   } else {
     eye.pan.x -= wheelZ.x;
     eye.pan.y -= wheelZ.y;

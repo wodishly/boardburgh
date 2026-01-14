@@ -177,10 +177,10 @@ const drawBrick = (game: Game, brick: Brick) => {
 
   const brickframe = toRectangle({
     navel: worldToCanvas(brick.z, canvas.eye),
-    greatness: worldToCanvas(
-      z(Settings.brickLength, Settings.brickLength, "world"),
-      canvas.eye,
-      false
+    greatness: z(
+      canvas.eye.zoom.scale * Settings.brickLength,
+      canvas.eye.zoom.scale * Settings.brickLength,
+      "canvas"
     ),
   });
 

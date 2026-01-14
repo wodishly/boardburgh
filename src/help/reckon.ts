@@ -40,6 +40,10 @@ export const zFarth = <K extends ZKind>(z: Z<K>, w: Z<K>) => {
   return Math.sqrt((z.x - w.x) ** 2 + (z.y - w.y) ** 2);
 };
 
+export const zLength = <K extends ZKind>(z: Z<K>) => {
+  return Math.sqrt(z.x ** 2 + z.y ** 2);
+};
+
 export const zPlus = <K extends ZKind>(z: Z<K>, w: Z<K>): Z<K> => {
   return { x: z.x + w.x, y: z.y + w.y, kind: z.kind };
 };
@@ -51,6 +55,7 @@ export const zMinus = <K extends ZKind>(z: Z<K>, w: Z<K>): Z<K> => {
 export const zTimes = <K extends ZKind>(z: Z<K>, n: number): Z<K> => {
   return { x: n * z.x, y: n * z.y, kind: z.kind };
 };
+
 export const dotTimes = <K extends ZKind>(z: Z<K>, w: Z<K>): Z<K> => {
   return { x: z.x * w.x, y: z.y * w.y, kind: z.kind };
 };

@@ -5,10 +5,10 @@ import {
   makeBoardframeDiv,
 } from "../../../board";
 import { wakeHandle } from "../../handle";
-import { roundTo, withCommas, type Z } from "../../../help/reckon";
+import { roundTo, toList, withCommas, type Z } from "../../../help/reckon";
 import { type ElementWithId, makeWithId } from "../type";
 import { canvasToWorld, worldToCanvas, type Brush } from "../../brush";
-import { ringdeal, withBorrowedContextForText } from "../../canvas";
+import { withBorrowedContext, withBorrowedContextForText } from "../../canvas";
 import { getCanvas, type Game } from "../../../game";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
@@ -95,7 +95,7 @@ export const drawDebug = (game: Game) => {
     );
     drawDebugOrd(
       boardCanvas,
-      canvasToWorld(boardCanvas.eye.zoom.navel, boardCanvas.eye),
+      canvasToWorld(boardCanvas.eye.zoom.newNavel, boardCanvas.eye),
       "z0"
     );
 
@@ -134,17 +134,16 @@ export const drawDebugOrd = (
     `${name}_s: ${withCommas(screenZ, true)}`,
     { x: screenZ.x, y: screenZ.y - 10, kind: "canvas" }
   );
-  ringdeal(
-    boardCanvas,
-    {
-      navel: z.kind === "world" ? worldZ : canvasToWorld(screenZ, eye),
-      halfwidth: 2,
-    },
-    0,
-    2 * Math.PI,
-    {
-      fillColor: fg(),
-      ...brush,
+  withBorrowedContext(
+    context,
+    { brush: { fillColor: fg(), strokeColor: fg(), ...brush } },
+    (context) => {
+      context.arc(
+        ...toList(z.kind === "world" ? worldToCanvas(worldZ, eye) : screenZ),
+        eye.zoom.scale * 2,
+        0,
+        2 * Math.PI
+      );
     }
   );
   withBorrowedContextForText(

@@ -1,5 +1,6 @@
 import type { Brick } from "../brick/brickstate";
-import type { Z } from "../help/reckon";
+import { z, type Z } from "../help/reckon";
+import { ly } from "../help/type";
 import type { Eye } from "./eye";
 import { fg } from "./html/div/div";
 
@@ -37,26 +38,57 @@ export const edgebrushOf = (brick: Brick): Partial<Brush> => {
   brick.state satisfies never;
 };
 
+export const sweetch = (worldZ: Z<"world">, eye: Eye, pan: Z<"canvas">) => {
+  return ly(
+    eye.zoom.oldNavel === eye.zoom.newNavel
+      ? 1
+      : (() => {
+          const oldFarth = Math.sqrt(
+            (worldZ.x + pan.x - eye.zoom.oldNavel.x) ** 2 +
+              (worldZ.y + pan.y - eye.zoom.oldNavel.y) ** 2
+          );
+          const newFarth = Math.sqrt(
+            (worldZ.x + pan.x - eye.zoom.newNavel.x) ** 2 +
+              (worldZ.y + pan.y - eye.zoom.newNavel.y) ** 2
+          );
+          return newFarth / oldFarth;
+        })()
+  );
+};
+
 export const worldToCanvas = (
-  z: Z<"world">,
+  worldZ: Z<"world">,
   eye: Eye,
   doPan = true
 ): Z<"canvas"> => {
+  const pan = doPan ? eye.pan : z(0, 0, "canvas");
+  const sw = sweetch(worldZ, eye, pan);
   return {
-    x: eye.zoom.scale * (z.x + (doPan ? eye.pan.x : 0)),
-    y: eye.zoom.scale * (z.y + (doPan ? eye.pan.y : 0)),
+    x:
+      eye.zoom.newNavel.x +
+      sw * eye.zoom.scale * (worldZ.x + pan.x - eye.zoom.newNavel.x),
+    y:
+      eye.zoom.newNavel.y +
+      sw * eye.zoom.scale * (worldZ.y + pan.y - eye.zoom.newNavel.y),
     kind: "canvas" as const,
   };
 };
 
 export const canvasToWorld = (
-  z: Z<"canvas">,
+  canvasZ: Z<"canvas">,
   eye: Eye,
   doPan = true
 ): Z<"world"> => {
+  const pan = doPan ? eye.pan : z(0, 0, "canvas");
   return {
-    x: (z.x - (doPan ? eye.pan.x : 0)) / eye.zoom.scale,
-    y: (z.y - (doPan ? eye.pan.y : 0)) / eye.zoom.scale,
+    x:
+      (canvasZ.x - eye.zoom.newNavel.x) / eye.zoom.scale -
+      pan.x +
+      eye.zoom.newNavel.x,
+    y:
+      (canvasZ.y - eye.zoom.newNavel.x) / eye.zoom.scale -
+      pan.y +
+      eye.zoom.newNavel.y,
     kind: "world" as const,
   };
 };

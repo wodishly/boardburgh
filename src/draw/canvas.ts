@@ -1,9 +1,8 @@
 import { Brushwit, Settings, Stavewit } from "../settings";
-import { zMinus, zPlus, zTimes, toList, type Z } from "../help/reckon";
+import { type Z } from "../help/reckon";
 import type { BoardCanvas } from "../board";
-import type { Eye } from "./eye";
-import { worldToCanvas, type Brush } from "./brush";
-import type { Rectangle, Ring } from "./shape";
+import { type Brush } from "./brush";
+import type { Rectangle } from "./shape";
 import { swap, type Override } from "../help/type";
 import {
   hasChurch,
@@ -129,47 +128,8 @@ export const withBorrowedContextForText = (
   Object.assign(context, oldContext);
 };
 
-export const zoom = (z: Z<"canvas">, eye: Eye): Z<"canvas"> => {
-  return {
-    ...zPlus(eye.pan, zTimes(zMinus(z, eye.pan), eye.zoom.scale)),
-    kind: "canvas",
-  };
-};
-
 export const wipe = ({ context }: BoardCanvas) => {
   context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-};
-
-export const ringdeal = (
-  { eye, context }: BoardCanvas,
-  { navel, halfwidth }: Ring<"world">,
-  start: number,
-  end: number,
-  brush: Partial<Brush> = {}
-) => {
-  const { fillStyle, strokeStyle, lineWidth } = context;
-
-  if (brush.fillColor) context.fillStyle = brush.fillColor;
-  if (brush.strokeColor) context.strokeStyle = brush.strokeColor;
-  if (brush.strokeWidth) context.lineWidth = brush.strokeWidth * eye.zoom.scale;
-
-  context.beginPath();
-  context.arc(
-    ...toList(worldToCanvas(navel, eye)),
-    eye.zoom.scale * halfwidth,
-    start,
-    end
-  );
-  context.closePath();
-
-  if (brush.fillColor) context.fill();
-  if (brush.strokeColor) context.stroke();
-
-  context.fillStyle = fillStyle;
-  context.strokeStyle = strokeStyle;
-  context.lineWidth = lineWidth;
-
-  return true as const;
 };
 
 export const drawFieldToCanvas = (
