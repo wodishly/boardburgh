@@ -1,5 +1,6 @@
 import type { BoardCanvas } from "../board";
 import { roundTo, zMinus, zPlus, zTimes, type Z } from "../help/reckon";
+import { Settings } from "../settings";
 import { type Handle } from "./handle";
 
 export type Eye = {
@@ -36,7 +37,10 @@ export const setEye = (eye: Eye, handle: Handle): Eye => {
   if (handle.mouse.wheel.ctrlKey) {
     eye.zoom.navel = handle.mouse.pointer.z;
     const oldScale = eye.zoom.scale;
-    eye.zoom.scale = Math.max(1 / 512, eye.zoom.scale - wheelZ.y / 512);
+    eye.zoom.scale = Math.max(
+      Settings.zoomStep,
+      eye.zoom.scale - wheelZ.y * Settings.zoomStep
+    );
     eye.pan = zPlus(
       eye.zoom.navel,
       zTimes(zMinus(eye.pan, eye.zoom.navel), eye.zoom.scale / oldScale)

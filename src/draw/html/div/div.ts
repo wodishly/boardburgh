@@ -9,7 +9,7 @@ import { roundTo, toList, withCommas, type Z } from "../../../help/reckon";
 import { type ElementWithId, makeWithId } from "../type";
 import { canvasToWorld, worldToCanvas, type Brush } from "../../brush";
 import { withBorrowedContext, withBorrowedContextForText } from "../../canvas";
-import { getCanvas, type Game } from "../../../game";
+import { getCanvas, getEye, type Game } from "../../../game";
 import { bg, fg } from "../../../settings";
 import { makeSlablistSpan, type SlablistSpan } from "./slab/slablist";
 
@@ -39,6 +39,7 @@ export const makeGameDiv = (gameState: GameState): GameDiv => {
 };
 
 export const drawDebug = (game: Game) => {
+  const eye = getEye(game);
   const handle = game.state.handle;
   const boardCanvas = getCanvas(game);
 
@@ -50,21 +51,33 @@ export const drawDebug = (game: Game) => {
     );
     withBorrowedContextForText(
       boardCanvas.context,
-      { brush: { fontSize: 15, fillColor: fg(), textAlign: "left" } },
-      `p0_knob: ${handle.mouse.pointer.knob?.slice(7) ?? ""}`,
       {
-        x: handle.mouse.pointer.z.x - 50,
-        y: handle.mouse.pointer.z.y + 30,
+        brush: {
+          fontSize: 15 * eye.zoom.scale,
+          fillColor: fg(),
+          textAlign: "left",
+        },
+      },
+      `p_knob: ${handle.mouse.pointer.knob?.slice(7) ?? ""}`,
+      {
+        x: handle.mouse.pointer.z.x - 50 * eye.zoom.scale,
+        y: handle.mouse.pointer.z.y + 30 * eye.zoom.scale,
         kind: "canvas",
       }
     );
     withBorrowedContextForText(
       boardCanvas.context,
-      { brush: { fontSize: 15, fillColor: fg(), textAlign: "left" } },
-      `p0_move: ${handle.mouse.pointer.move?.slice(7) ?? ""}`,
       {
-        x: handle.mouse.pointer.z.x - 50,
-        y: handle.mouse.pointer.z.y + 50,
+        brush: {
+          fontSize: 15 * eye.zoom.scale,
+          fillColor: fg(),
+          textAlign: "left",
+        },
+      },
+      `p_move: ${handle.mouse.pointer.move?.slice(7) ?? ""}`,
+      {
+        x: handle.mouse.pointer.z.x - 50 * eye.zoom.scale,
+        y: handle.mouse.pointer.z.y + 50 * eye.zoom.scale,
         kind: "canvas",
       }
     );
@@ -76,11 +89,17 @@ export const drawDebug = (game: Game) => {
 
     withBorrowedContextForText(
       boardCanvas.context,
-      { brush: { fontSize: 15, fillColor: fg(), textAlign: "left" } },
-      `zoom: ${roundTo(boardCanvas.eye.zoom.scale, 3)}`,
       {
-        x: handle.mouse.pointer.z.x - 50,
-        y: handle.mouse.pointer.z.y + 70,
+        brush: {
+          fontSize: 15 * eye.zoom.scale,
+          fillColor: fg(),
+          textAlign: "left",
+        },
+      },
+      `zoom: ${roundTo(eye.zoom.scale, 3)}`,
+      {
+        x: handle.mouse.pointer.z.x - 50 * eye.zoom.scale,
+        y: handle.mouse.pointer.z.y + 70 * eye.zoom.scale,
         kind: "canvas",
       }
     );
@@ -93,12 +112,12 @@ export const drawDebug = (game: Game) => {
     drawDebugOrd(
       boardCanvas,
       canvasToWorld({ x: 15, y: 15, kind: "canvas" as const }, boardCanvas.eye),
-      "0w"
+      "0s"
     );
     drawDebugOrd(
       boardCanvas,
       { x: 400, y: 200, kind: "world" as const },
-      "someOrd"
+      "ord"
     );
   }
 };
@@ -117,13 +136,13 @@ export const drawDebugOrd = (
     context,
     {
       brush: {
-        fontSize: 15,
+        fontSize: 15 * eye.zoom.scale,
         fillColor: fg(),
         ...brush,
       },
     },
     `${name}_s: ${withCommas(screenZ, true)}`,
-    { x: screenZ.x, y: screenZ.y - 10, kind: "canvas" }
+    { x: screenZ.x, y: screenZ.y - 10 * eye.zoom.scale, kind: "canvas" }
   );
   withBorrowedContext(
     context,
@@ -141,12 +160,12 @@ export const drawDebugOrd = (
     context,
     {
       brush: {
-        fontSize: 15,
+        fontSize: 15 * eye.zoom.scale,
         fillColor: fg(),
         ...brush,
       },
     },
     `${name}_w: ${withCommas(worldZ, true)}`,
-    { x: screenZ.x, y: screenZ.y + 10, kind: "canvas" }
+    { x: screenZ.x, y: screenZ.y + 10 * eye.zoom.scale, kind: "canvas" }
   );
 };

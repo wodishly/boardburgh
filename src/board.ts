@@ -183,6 +183,7 @@ const drawChosen = (game: Game, chosen: Maybe<Brick>) => {
 
 const drawBrick = (game: Game, brick: Brick) => {
   const canvas = getCanvas(game);
+  const eye = canvas.eye;
 
   const brickframe = toRectangle({
     navel: worldToCanvas(brick.z, canvas.eye),
@@ -251,7 +252,7 @@ const drawBrick = (game: Game, brick: Brick) => {
       canvas.context,
       {
         brush: {
-          fontSize: 15,
+          fontSize: 15 * eye.zoom.scale,
           fillColor: isChosen(game, brick) ? "white" : "black",
         },
         wend,
@@ -266,7 +267,7 @@ const drawBrick = (game: Game, brick: Brick) => {
       canvas.context,
       {
         brush: {
-          fontSize: 15,
+          fontSize: 15 * eye.zoom.scale,
           fillColor: isChosen(game, brick) ? "white" : "black",
         },
         wend,
@@ -281,7 +282,7 @@ const drawBrick = (game: Game, brick: Brick) => {
       canvas.context,
       {
         brush: {
-          fontSize: 15,
+          fontSize: 15 * eye.zoom.scale,
           fillColor: isChosen(game, brick) ? "white" : "black",
         },
         wend,
@@ -304,15 +305,18 @@ const drawBrick = (game: Game, brick: Brick) => {
         withBorrowedContextForText(
           canvas.context,
           {
-            brush: { fontSize: 15 },
+            brush: { fontSize: 15 * eye.zoom.scale },
             wend: { ...wend, winkle: wend.winkle + ((i + 1) * Math.PI) / 2 },
           },
           `(${Waybook[i]})`,
           worldToCanvas(
             {
-              x: brick.z.x + toEdgeZ(Waybook[3]).x * brickframe.width * (5 / 8),
+              x:
+                brick.z.x +
+                toEdgeZ(Waybook[3]).x * Settings.brickLength * (5 / 8),
               y:
-                brick.z.y + toEdgeZ(Waybook[3]).y * brickframe.height * (5 / 8),
+                brick.z.y +
+                toEdgeZ(Waybook[3]).y * Settings.brickLength * (5 / 8),
               kind: "world",
             },
             canvas.eye
