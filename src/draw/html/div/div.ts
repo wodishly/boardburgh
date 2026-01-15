@@ -95,7 +95,7 @@ export const drawDebug = (game: Game) => {
     );
     drawDebugOrd(
       boardCanvas,
-      canvasToWorld(boardCanvas.eye.zoom.newNavel, boardCanvas.eye),
+      canvasToWorld(boardCanvas.eye.zoom.navel, boardCanvas.eye),
       "z0"
     );
 

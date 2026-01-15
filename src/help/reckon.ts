@@ -36,6 +36,10 @@ export const z = <K extends ZKind>(x: number, y: number, kind: K): Z<K> => {
   return { x, y, kind };
 };
 
+export const zEqual = <K extends ZKind>(z: Z<K>, w: Z<K>) => {
+  return z.x === w.x && z.y === w.y;
+};
+
 export const zFarth = <K extends ZKind>(z: Z<K>, w: Z<K>) => {
   return Math.sqrt((z.x - w.x) ** 2 + (z.y - w.y) ** 2);
 };
