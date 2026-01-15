@@ -1,9 +1,10 @@
 import { isBrick, type Brick } from "./brick/brickstate";
 import { type Deck, makeDeck } from "./brick/deck";
 import { type Handle, makeHandle } from "./draw/handle";
-import { isSlab, isSlabId, type Slab } from "./draw/html/div/slab/slab";
+import { isSlab, type Slab } from "./draw/html/div/slab/slab";
 import type { Game } from "./game";
 import type { Maybe } from "./help/type";
+import { makeAllweb, type Allweb } from "./web";
 
 export type GameState<Ch extends Chosen = Chosen> = {
   handle: Handle;
@@ -12,6 +13,7 @@ export type GameState<Ch extends Chosen = Chosen> = {
   chosen: Ch;
   ids: number;
   isLeeching: boolean;
+  allweb: Allweb;
 };
 
 export type Chosen = Maybe<Slab | Brick>;
@@ -23,7 +25,8 @@ export const makeGameState = (): GameState => {
     boardlist: [],
     chosen: undefined,
     ids: 0,
-    isLeeching: false,
+    isLeeching: true,
+    allweb: makeAllweb(),
   };
 };
 

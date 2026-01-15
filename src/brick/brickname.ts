@@ -4,16 +4,16 @@ import { type Edgestaff, edgetellsOf, isEdgestaff } from "./edge";
 
 export type Brickname<
   E extends Edgestaff = Edgestaff,
-  N extends Edgestaff = Edgestaff,
-  W extends Edgestaff = Edgestaff,
   S extends Edgestaff = Edgestaff,
+  W extends Edgestaff = Edgestaff,
+  N extends Edgestaff = Edgestaff,
   B extends boolean = boolean
 > = E extends any
-  ? N extends any
+  ? S extends any
     ? W extends any
-      ? S extends any
-        ? `${E}${N}${W}${S}${Maybestaff<E, N, W, S>}${ShieldstaffOf<
-            E | N | W | S,
+      ? N extends any
+        ? `${E}${S}${W}${N}${Maybestaff<E, S, W, N>}${ShieldstaffOf<
+            E | S | W | N,
             B
           >}`
         : never
@@ -23,15 +23,15 @@ export type Brickname<
 
 type Maybestaff<
   E extends Edgestaff = Edgestaff,
-  N extends Edgestaff = Edgestaff,
+  S extends Edgestaff = Edgestaff,
   W extends Edgestaff = Edgestaff,
-  S extends Edgestaff = Edgestaff
+  N extends Edgestaff = Edgestaff
 > =
   | ""
   | (E extends "b"
-      ? N extends "f"
+      ? S extends "f"
         ? W extends "b"
-          ? S extends "f"
+          ? N extends "f"
             ? 2
             : never
           : never
@@ -60,7 +60,7 @@ export type Eaststaff<N extends Brickname> = N extends `${infer S}${infer _}`
     : never
   : never;
 
-export type Northstaff<N extends Brickname> =
+export type Southstaff<N extends Brickname> =
   N extends `${Edgestaff}${infer S}${infer _}`
     ? S extends Edgestaff
       ? S
@@ -74,7 +74,7 @@ export type Weststaff<N extends Brickname> =
       : never
     : never;
 
-export type Southstaff<N extends Brickname> =
+export type Northstaff<N extends Brickname> =
   N extends `${Edgestaff}${Edgestaff}${Edgestaff}${infer S}${infer _}`
     ? S extends Edgestaff
       ? S
@@ -87,9 +87,9 @@ export type Shieldstaff<N extends Brickname> =
     : "";
 
 export type East<E extends Edgestaff> = Brickname<E>;
-export type North<E extends Edgestaff> = Brickname<Edgestaff, E>;
+export type South<E extends Edgestaff> = Brickname<Edgestaff, E>;
 export type West<E extends Edgestaff> = Brickname<Edgestaff, Edgestaff, E>;
-export type South<E extends Edgestaff> = Brickname<
+export type North<E extends Edgestaff> = Brickname<
   Edgestaff,
   Edgestaff,
   Edgestaff,
@@ -100,16 +100,16 @@ export const east = <N extends Brickname>(brickname: N) => {
   return brickname[0] as Override<Eaststaff<N>>;
 };
 
-export const north = <N extends Brickname>(brickname: N) => {
-  return brickname[1] as Override<Northstaff<N>>;
+export const south = <N extends Brickname>(brickname: N) => {
+  return brickname[1] as Override<Southstaff<N>>;
 };
 
 export const west = <N extends Brickname>(brickname: N) => {
   return brickname[2] as Override<Weststaff<N>>;
 };
 
-export const south = <N extends Brickname>(brickname: N) => {
-  return brickname[3] as Override<Southstaff<N>>;
+export const north = <N extends Brickname>(brickname: N) => {
+  return brickname[3] as Override<Northstaff<N>>;
 };
 
 export const hasEast = <S extends Edgestaff>(
@@ -199,6 +199,15 @@ export const hasBurgh = (brickname: Brickname): brickname is Bful => {
     brickname[1] === "b" ||
     brickname[2] === "b" ||
     brickname[3] === "b"
+  );
+};
+
+export const hasField = (brickname: Brickname): brickname is Fful => {
+  return (
+    brickname[0] === "f" ||
+    brickname[1] === "f" ||
+    brickname[2] === "f" ||
+    brickname[3] === "f"
   );
 };
 

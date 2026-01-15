@@ -38,11 +38,11 @@ export const isBrickshape = (x: unknown): x is Brickshape => {
   );
 };
 
-export const edges = <N extends Brickname>(brickname: N) => {
+export const makeEdges = <N extends Brickname>(brickname: N) => {
   return {
     east: edgestaffToName(east(brickname)),
-    north: edgestaffToName(north(brickname)),
-    west: edgestaffToName(west(brickname)),
     south: edgestaffToName(south(brickname)),
+    west: edgestaffToName(west(brickname)),
+    north: edgestaffToName(north(brickname)),
   };
 };

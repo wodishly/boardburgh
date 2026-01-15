@@ -30,7 +30,9 @@ export const reckonStraightRoad = <K extends "canvas" | "svg">(
   bricknooks: Rectangle<K>,
   head: Wayname = "east"
 ): Nookful<K, Roadnooks> => {
-  const allNooks = sameshift([...Waybook], (way) => {
+  const lyingNooks = [];
+  for (let i = 0; i < Waybook.length; i++) {
+    const way = Waybook[i];
     const spunThisWay = wayPlus(way, head);
     const thisInnerNook = zTimes(
       toNookZ(spunThisWay),
@@ -40,7 +42,7 @@ export const reckonStraightRoad = <K extends "canvas" | "svg">(
       toNookZ(wayNext(spunThisWay)),
       Settings.draw.roadHalfwidth
     );
-    return [
+    lyingNooks.push(
       thisInnerNook,
       z(
         spunThisWay === "east" || spunThisWay === "west"
@@ -59,27 +61,33 @@ export const reckonStraightRoad = <K extends "canvas" | "svg">(
           ? toEdgeZ(spunThisWay).y
           : nextInnerNook.y,
         "svg"
-      ),
-    ];
-  }).flat();
+      )
+    );
+  }
 
   const trueNooks = [];
 
   for (let i = 0; i < Waybook.length; i++) {
     trueNooks.push({
-      x: bricknooks.x + (bricknooks.width / 2) * (1 + allNooks[3 * i].x),
-      y: bricknooks.y + (bricknooks.height / 2) * (1 + allNooks[3 * i].y),
+      x: bricknooks.x + (bricknooks.width / 2) * (1 + lyingNooks[3 * i].x),
+      y: bricknooks.y + (bricknooks.height / 2) * (1 + lyingNooks[3 * i].y),
       kind: bricknooks.kind,
     });
     if (brickname[i] === "r") {
       trueNooks.push({
-        x: bricknooks.x + (bricknooks.width / 2) * (1 + allNooks[3 * i + 1].x),
-        y: bricknooks.y + (bricknooks.height / 2) * (1 + allNooks[3 * i + 1].y),
+        x:
+          bricknooks.x + (bricknooks.width / 2) * (1 + lyingNooks[3 * i + 1].x),
+        y:
+          bricknooks.y +
+          (bricknooks.height / 2) * (1 + lyingNooks[3 * i + 1].y),
         kind: bricknooks.kind,
       });
       trueNooks.push({
-        x: bricknooks.x + (bricknooks.width / 2) * (1 + allNooks[3 * i + 2].x),
-        y: bricknooks.y + (bricknooks.height / 2) * (1 + allNooks[3 * i + 2].y),
+        x:
+          bricknooks.x + (bricknooks.width / 2) * (1 + lyingNooks[3 * i + 2].x),
+        y:
+          bricknooks.y +
+          (bricknooks.height / 2) * (1 + lyingNooks[3 * i + 2].y),
         kind: bricknooks.kind,
       });
     }
@@ -122,7 +130,7 @@ export const reckonShield = <K extends "canvas" | "svg">(
   return {
     x: x + (width * 11) / 16,
     y:
-      brickname[0] === "b" && brickname[1] !== "b" && brickname[2] === "b"
+      brickname[0] === "b" && brickname[3] !== "b" && brickname[2] === "b"
         ? y + (height * 3) / 8
         : y + (height * 1) / 16,
     kind: bricknooks.kind,

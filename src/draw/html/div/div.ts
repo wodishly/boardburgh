@@ -10,24 +10,13 @@ import { type ElementWithId, makeWithId } from "../type";
 import { canvasToWorld, worldToCanvas, type Brush } from "../../brush";
 import { withBorrowedContext, withBorrowedContextForText } from "../../canvas";
 import { getCanvas, type Game } from "../../../game";
+import { bg, fg } from "../../../settings";
+import { makeSlablistSpan, type SlablistSpan } from "./slab/slablist";
 
 export type GameDiv = ElementWithId<"div", "game"> & {
   boardframeDiv: BoardframeDiv;
-  url: typeof window.URL | typeof window.webkitURL; // | typeof window;
+  slablistSpan: SlablistSpan;
   isDark: boolean;
-};
-
-export const makeUrl = () => {
-  if (window.URL) {
-    // console.log("window.URL");
-    return window.URL;
-  } else if (window.webkitURL) {
-    // console.log("window.webkitURL");
-    return window.webkitURL;
-  } else {
-    throw new Error("bad url");
-    // return window;
-  }
 };
 
 export const makeGameDiv = (gameState: GameState): GameDiv => {
@@ -35,14 +24,16 @@ export const makeGameDiv = (gameState: GameState): GameDiv => {
 
   const boardframeDiv = makeBoardframeDiv(gameState);
   wakeHandle(gameState.handle, boardframeDiv.boardCanvas);
-  almostGameDiv.element.append(boardframeDiv.element);
+
+  const slablistSpan = makeSlablistSpan(gameState, boardframeDiv.slabs);
+  almostGameDiv.element.append(boardframeDiv.element, slablistSpan.element);
 
   document.body.insertBefore(almostGameDiv.element, document.body.firstChild);
 
   return {
     ...almostGameDiv,
     boardframeDiv,
-    url: makeUrl(),
+    slablistSpan,
     isDark: bg() === "black",
   };
 };
@@ -158,16 +149,4 @@ export const drawDebugOrd = (
     `${name}_w: ${withCommas(worldZ, true)}`,
     { x: screenZ.x, y: screenZ.y + 10, kind: "canvas" }
   );
-};
-
-export const fg = () => {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "white"
-    : "black";
-};
-
-export const bg = () => {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "black"
-    : "white";
 };

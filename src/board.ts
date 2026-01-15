@@ -1,6 +1,7 @@
 import {
   handleBrick,
   isBrick,
+  isCold,
   isInState,
   wayTo,
   type Brick,
@@ -10,9 +11,15 @@ import {
   type HTMLMake,
   makeWithId,
 } from "./draw/html/type";
-import { Settings } from "./settings";
-import { makeEye, resize, setEye, type Eye } from "./draw/eye";
-import { isWaytell, waynameOf, wayPlus } from "./help/way";
+import {
+  isWaytell,
+  toEdgeZ,
+  Waybook,
+  wayMinus,
+  waynameOf,
+  wayPlus,
+  type Waytell,
+} from "./help/way";
 import { getCanvas, type Game } from "./game";
 import {
   drawBurghToCanvas,
@@ -23,17 +30,19 @@ import {
   withBorrowedContext,
   withBorrowedContextForText,
 } from "./draw/canvas";
-import { drawDebug, drawDebugOrd, fg } from "./draw/html/div/div";
-import { z } from "./help/reckon";
-import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
 import { toRectangle } from "./draw/shape";
-import { type Maybe } from "./help/type";
+import { type Maybe, type Override } from "./help/type";
 import { isChosen, type GameState } from "./state";
 import { updateHandle } from "./draw/handle";
 import { makeSlab, updateSlabs, type Slab } from "./draw/html/div/slab/slab";
 import { makeDeckslab, type Deckslab } from "./draw/html/div/slab/deckslab";
-import { makeFriendslab } from "./draw/html/div/slab/friendslab";
+import { makeHouseslab } from "./draw/html/div/slab/houseslab";
 import { makeWorthslab } from "./draw/html/div/slab/worthslab";
+import { canvasToWorld, worldToCanvas, edgebrushOf } from "./draw/brush";
+import { type Eye, makeEye, resize, setEye } from "./draw/eye";
+import { drawDebug, drawDebugOrd } from "./draw/html/div/div";
+import { z } from "./help/reckon";
+import { Settings, fg } from "./settings";
 
 export type BoardCanvas = ElementWithId<"canvas", "board"> & {
   context: CanvasRenderingContext2D;
@@ -43,10 +52,10 @@ export type BoardCanvas = ElementWithId<"canvas", "board"> & {
 export type BoardframeDiv = ElementWithId<"div", "boardframe"> & {
   boardCanvas: BoardCanvas;
   slabs: {
-    keyslab: Slab<"keyslab">;
     deckslab: Deckslab;
-    friendslab: Slab<"friendslab">;
+    houseslab: Slab<"houseslab">;
     worthslab: Slab<"worthslab">;
+    helpslab: Slab<"helpslab">;
   };
 };
 
@@ -62,10 +71,10 @@ export const makeBoardframeDiv: HTMLMake<BoardframeDiv> = (gameState) => {
   const eye = makeEye(gameState.handle, almostBoardCanvas);
 
   const slabs = {
-    keyslab: makeKeyslab(gameState),
     deckslab: makeDeckslab(gameState),
-    friendslab: makeFriendslab(gameState),
+    houseslab: makeHouseslab(gameState),
     worthslab: makeWorthslab(gameState),
+    helpslab: makeHelpslab(gameState),
   };
   for (const slab of Object.values(slabs)) {
     almostBoardframeDiv.element.append(slab.element);
@@ -86,10 +95,10 @@ export const makeBoardframeDiv: HTMLMake<BoardframeDiv> = (gameState) => {
   };
 };
 
-const makeKeyslab = (gameState: GameState) => {
+const makeHelpslab = (gameState: GameState) => {
   return makeSlab(
     gameState,
-    "keyslab",
+    "helpslab",
     "<h4>world</h4>" +
       "<ul>" +
       "<li><kbd>l</kbd> for leechsight</li>" +
@@ -126,8 +135,8 @@ export const doesWeave = (brick: Brick, other: Brick) => {
   return (
     isWaytell(brick.farthings) &&
     isWaytell(other.farthings) &&
-    brick.edges[wayPlus(wayTo(other, brick), waynameOf(brick.farthings))] ===
-      other.edges[wayPlus(wayTo(brick, other), waynameOf(other.farthings))]
+    brick.edges[wayMinus(wayTo(other, brick), waynameOf(brick.farthings))] ===
+      other.edges[wayMinus(wayTo(brick, other), waynameOf(other.farthings))]
   );
 };
 
@@ -136,7 +145,7 @@ export const updateBoard = (game: Game, now: number) => {
 
   for (const thing of [...game.state.boardlist, game.state.chosen].reverse()) {
     if (isBrick(thing)) {
-      handleBrick(game, thing);
+      handleBrick(game, thing, now);
     }
   }
 
@@ -197,6 +206,13 @@ const drawBrick = (game: Game, brick: Brick) => {
   drawRoadToCanvas(canvas.context, wend, brickframe, brick.brickname);
   drawBurghToCanvas(canvas.context, wend, brickframe, brick.brickname);
   drawShieldToCanvas(canvas.context, wend, brickframe, brick.brickname);
+
+  const nooks = [
+    z(brickframe.width / 2, brickframe.height / 2, "canvas"),
+    z(-brickframe.width / 2, brickframe.height / 2, "canvas"),
+    z(-brickframe.width / 2, -brickframe.height / 2, "canvas"),
+    z(brickframe.width / 2, -brickframe.height / 2, "canvas"),
+  ];
 
   withBorrowedContext(
     canvas.context,
@@ -276,5 +292,33 @@ const drawBrick = (game: Game, brick: Brick) => {
         canvas.eye
       )
     );
+    for (let i = 0; i < nooks.length; i++) {
+      if (
+        isCold(brick) &&
+        brick.neighbors[
+          wayPlus(waynameOf(i as Override<Waytell>), waynameOf(brick.farthings))
+        ] !== undefined
+      ) {
+        // todo
+      } else {
+        withBorrowedContextForText(
+          canvas.context,
+          {
+            brush: { fontSize: 15 },
+            wend: { ...wend, winkle: wend.winkle + ((i + 1) * Math.PI) / 2 },
+          },
+          `(${Waybook[i]})`,
+          worldToCanvas(
+            {
+              x: brick.z.x + toEdgeZ(Waybook[3]).x * brickframe.width * (5 / 8),
+              y:
+                brick.z.y + toEdgeZ(Waybook[3]).y * brickframe.height * (5 / 8),
+              kind: "world",
+            },
+            canvas.eye
+          )
+        );
+      }
+    }
   }
 };

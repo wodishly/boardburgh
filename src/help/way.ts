@@ -1,8 +1,8 @@
-import { mod, type ZKind } from "./reckon";
+import { mod } from "./reckon";
 import { type Modulo, type Next, type Plus } from "./rime";
 import { type Thaw, type Override, type Wayward } from "./type";
 
-export const Waybook = ["east", "north", "west", "south"] as const;
+export const Waybook = ["east", "south", "west", "north"] as const;
 
 export type Wayname = (typeof Waybook)[number];
 export type WaynameOf<T extends Waytell> = (typeof Waybook)[T];
@@ -40,7 +40,18 @@ export const waynameOf = <T extends Waytell>(tell: T): (typeof Waybook)[T] => {
 };
 
 export const wayNext = <N extends Wayname>(way: N) => {
-  return wayPlus(way, "north");
+  return wayPlus(way, Waybook[1]);
+};
+
+export const wayBefore = <N extends Wayname>(way: N) => {
+  return wayMinus(way, Waybook[1]);
+};
+
+export const wayMinus = <N extends Wayname, M extends Wayname>(
+  first: N,
+  other: M
+) => {
+  return wayPlus(wayPlus(wayPlus(first, other), other), other);
 };
 
 export const wayPlus = <N extends Wayname, M extends Wayname>(
@@ -61,67 +72,44 @@ export const wayPlus = <N extends Wayname, M extends Wayname>(
   >;
 };
 
-export type NookZ<N extends Wayname> = N extends "east"
-  ? { x: 1; y: 1; kind: "svg" }
-  : N extends "north"
-  ? { x: 1; y: -1; kind: "svg" }
-  : N extends "west"
-  ? { x: -1; y: -1; kind: "svg" }
-  : N extends "south"
-  ? { x: -1; y: 1; kind: "svg" }
-  : never;
+export type NookZ<N extends Wayname> = (typeof NookZBook)[N];
 
-export type EdgeZ<N extends Wayname> = N extends "east"
-  ? { x: 1; y: 0; kind: "svg" }
-  : N extends "north"
-  ? { x: 0; y: -1; kind: "svg" }
-  : N extends "west"
-  ? { x: -1; y: 0; kind: "svg" }
-  : N extends "south"
-  ? { x: 0; y: 1; kind: "svg" }
-  : never;
+export type EdgeZ<N extends Wayname> = (typeof EdgeZBook)[N];
+
+const EdgeZBook = {
+  east: { x: 1, y: 0, kind: "svg" },
+  south: { x: 0, y: 1, kind: "svg" },
+  west: { x: -1, y: 0, kind: "svg" },
+  north: { x: 0, y: -1, kind: "svg" },
+} as const;
+
+const NookZBook = {
+  east: { x: 1, y: -1, kind: "svg" },
+  south: { x: 1, y: 1, kind: "svg" },
+  west: { x: -1, y: 1, kind: "svg" },
+  north: { x: -1, y: -1, kind: "svg" },
+} as const;
 
 /**
- * @returns the starting corner of the way, meted moonwise.
+ * @returns the starting corner of the way, meted sunwise (ESWN).
  * north is negative
  */
 
-export const toNookZ = <N extends Wayname>(way: N) => {
-  switch (way) {
-    case "east":
-      return { x: 1, y: 1, kind: "svg" } as Override<NookZ<N>>;
-    case "north":
-      return { x: 1, y: -1, kind: "svg" } as Override<NookZ<N>>;
-    case "west":
-      return { x: -1, y: -1, kind: "svg" } as Override<NookZ<N>>;
-    case "south":
-      return { x: -1, y: 1, kind: "svg" } as Override<NookZ<N>>;
-  }
-  way satisfies never;
+export const toNookZ = <N extends Wayname>(way: N): NookZ<N> => {
+  return NookZBook[way];
 };
 
 /**
  * @returns the edge of the way.
  * north is negative
  */
-export const toEdgeZ = <N extends Wayname>(way: N) => {
-  switch (way) {
-    case "east":
-      return { x: 1, y: 0, kind: "svg" } as Override<EdgeZ<N>>;
-    case "north":
-      return { x: 0, y: -1, kind: "svg" } as Override<EdgeZ<N>>;
-    case "west":
-      return { x: -1, y: 0, kind: "svg" } as Override<EdgeZ<N>>;
-    case "south":
-      return { x: 0, y: 1, kind: "svg" } as Override<EdgeZ<N>>;
-  }
-  way satisfies never;
+export const toEdgeZ = <N extends Wayname>(way: N): EdgeZ<N> => {
+  return EdgeZBook[way];
 };
 
-export const toFarthing = (way: Wayname, kind: ZKind) => {
-  return (
-    ((kind === "canvas" ? 3 - waytellOf(way) : waytellOf(way)) * Math.PI) / 2
-  );
+// todo: fold this with other canvas sunwiseness sheanigans
+export const toCanvasFarthing = (way: Wayname) => {
+  return (waytellOf(way) * Math.PI) / 2;
 };
 
 // unused
@@ -135,8 +123,8 @@ export const toFarthing = (way: Wayname, kind: ZKind) => {
 export const makeWayward = <T>(f: (n: number) => T): Wayward<T> => {
   return {
     east: f(0),
-    north: f(1),
+    south: f(1),
     west: f(2),
-    south: f(3),
+    north: f(3),
   };
 };

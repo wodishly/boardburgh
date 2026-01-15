@@ -6,3 +6,11 @@
   - zoom
 - meeples
 - other screens / devices
+- web
+  - knowing when something is closed
+  - fields
+  - scoring
+  - frozen neighbors don't add bricks back
+  - `Override<any>` :(
+  - debug modo state doesnt show `nearby` state
+- swap drag and spin

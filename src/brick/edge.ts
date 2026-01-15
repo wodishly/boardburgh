@@ -1,4 +1,4 @@
-import type { Override } from "../help/type";
+import type { Onset, Override } from "../help/type";
 import {
   type Brickname,
   type Eaststaff,
@@ -19,7 +19,7 @@ export type Edgestaff = "b" | "f" | "r";
 export const isEdgestaff = (x: unknown): x is Edgestaff =>
   x === "b" || x === "f" || x === "r";
 
-export type Edgename<S extends Edgestaff> = S extends "b"
+export type Edgename<S extends Edgestaff = Edgestaff> = S extends "b"
   ? "burgh"
   : S extends "f"
   ? "field"
@@ -42,11 +42,27 @@ export const edgestaffToName = <S extends Edgestaff>(staff: S): Edgename<S> => {
   staff satisfies never;
 };
 
+export type EdgestaffOf<N extends Edgename = Edgename> = Onset<N>;
+
+export const edgenameToStaff = <N extends Edgename>(
+  name: N
+): EdgestaffOf<N> => {
+  switch (name) {
+    case "burgh":
+      return "b" as Override<EdgestaffOf<N>>;
+    case "field":
+      return "f" as Override<EdgestaffOf<N>>;
+    case "road":
+      return "r" as Override<EdgestaffOf<N>>;
+  }
+  name satisfies never;
+};
+
 type Edgetells<N extends Brickname, S extends Edgestaff> = [
   ...(Eaststaff<N> extends S ? [0] : []),
-  ...(Northstaff<N> extends S ? [1] : []),
+  ...(Southstaff<N> extends S ? [1] : []),
   ...(Weststaff<N> extends S ? [2] : []),
-  ...(Southstaff<N> extends S ? [3] : [])
+  ...(Northstaff<N> extends S ? [3] : [])
 ];
 
 export const edgetellsOf = <N extends Brickname, S extends Edgestaff>(
@@ -57,13 +73,13 @@ export const edgetellsOf = <N extends Brickname, S extends Edgestaff>(
   if (east(brickname) === staff) {
     tells.push(0);
   }
-  if (north(brickname) === staff) {
+  if (south(brickname) === staff) {
     tells.push(1);
   }
   if (west(brickname) === staff) {
     tells.push(2);
   }
-  if (south(brickname) === staff) {
+  if (north(brickname) === staff) {
     tells.push(3);
   }
   return tells as N extends any ? Override<Edgetells<N, S>> : never;

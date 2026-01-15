@@ -35,8 +35,12 @@ export const makeDeckslab: HTMLMake<Deckslab> = (gameState) => {
   const tallyDiv = makeTallyDiv(gameState);
   const dealDiv = makeWithId("div", "deal" as const);
 
-  const dealKnob = makeKnob(gameState, "deal", () => {
+  const dealKnob = makeKnob(gameState, "deal");
+  dealKnob.element.addEventListener("click", () => {
     dealBrick(gameState, 0);
+    if (gameState.deck.bricklist.length <= 0) {
+      dealKnob.element.disabled = true;
+    }
     updateDeckslabWith(gameState, laveSpan, tallyDiv, runTally(gameState));
   });
   deckslab.element.append(
@@ -49,7 +53,7 @@ export const makeDeckslab: HTMLMake<Deckslab> = (gameState) => {
   return { ...deckslab, laveSpan, tallyDiv, dealDiv, dealKnob };
 };
 
-export const makeTallyDiv: HTMLMake<TallyDiv> = (_) => {
+export const makeTallyDiv: HTMLMake<TallyDiv> = () => {
   const tallyDiv = makeWithId("div", "tally" as const);
   return { ...tallyDiv, tallyUls: [] };
 };

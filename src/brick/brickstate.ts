@@ -1,5 +1,5 @@
 import { type Brickshape, isBrickshape } from "./brickshape";
-import { mod, zMinus, zTimes, type Z, type Zful } from "../help/reckon";
+import { mod, zFarth, zMinus, zTimes, type Z, type Zful } from "../help/reckon";
 import {
   isObject,
   only,
@@ -7,7 +7,13 @@ import {
   type Maybe,
   type Wayward,
 } from "../help/type";
-import { makeWayward, type Wayname } from "../help/way";
+import {
+  makeWayward,
+  wayMinus,
+  waynameOf,
+  wayPlus,
+  type Wayname,
+} from "../help/way";
 import { isMouseInBrick, doesWeave } from "../board";
 import { getEye, type Game } from "../game";
 import { worldToCanvas, canvasToWorld } from "../draw/brush";
@@ -21,6 +27,7 @@ import {
   isPointerUp,
   type Mouse,
 } from "../draw/handle";
+import { updateAllweb } from "../web";
 
 export type BoardId = number;
 
@@ -31,6 +38,17 @@ export type OnBoard = "live" | Chosen | "drop";
 export type Chosen = "choose" | "drag" | "spin" | "hover2";
 export type Cold = "nearby" | "frozen";
 
+export type Waykind = "brick" | "world";
+export type Brickway<
+  K extends Waykind = Waykind,
+  N extends Wayname = Wayname
+> = {
+  kind: K;
+  name: N;
+};
+export type Shoalway<N extends Wayname = Wayname> = Brickway<"world", N>;
+export type Deepway<N extends Wayname = Wayname> = Brickway<"brick", N>;
+
 export type Brick<
   S extends Brickstate = Brickstate,
   N extends Brickname = Brickname
@@ -38,15 +56,13 @@ export type Brick<
   Zful<"world"> & {
     boardId: BoardId;
     farthings: S extends "spin" ? number : 0 | 1 | 2 | 3;
-    neighbors: S extends Cold
-      ? Wayward<Maybe<Brick<Brickstate, Brickname>>>
-      : S extends OnBoard
-      ? Maybe<Wayward<Maybe<Brick<Brickstate, Brickname>>>>
-      : undefined;
+    neighbors: Wayward<Maybe<Brick<Cold, Brickname>>>;
     isSnapped: S extends Cold ? true : S extends "fresh" ? false : boolean;
     state: S;
     choose: S extends Chosen ? BrickChoose : undefined;
   };
+
+type NeighborBrick = Brick<Cold>;
 
 type Winkle = number;
 
@@ -54,6 +70,32 @@ type BrickChoose = {
   brickZ: Z<"canvas">; // starting z
   brickW: Winkle; // starting winkle
   clickZ: Z<"canvas">; // z of mouse click
+};
+
+/**
+ * @param deepedge the wayname of the edge to the world
+ * @returns the wayname of the edge to the brick
+ *
+ * This has now been implemented, but it was an ordeal.
+ * We leave this note here out of remembrance.
+ *
+ * Note that the winding way has to be flipped (using
+ * `wayMinus` instead of `wayPlus`, since canvas goes
+ * E->S->W->N but bricks go E->N->W->S. This should
+ * one day be fixed by having bricks go E->S->W->N.
+ */
+export const reckonEdgeAfterSpin = (
+  brick: Brick<Exclude<Brickstate, "spin">>,
+  { name }: Deepway
+): Shoalway => {
+  return { name: wayPlus(name, waynameOf(brick.farthings)), kind: "world" };
+};
+
+export const reckonEdgeBeforeSpin = (
+  brick: Brick<Exclude<Brickstate, "spin">>,
+  { name }: Shoalway
+): Deepway => {
+  return { name: wayMinus(name, waynameOf(brick.farthings)), kind: "brick" };
 };
 
 export const isBrickState = (x: unknown): x is Brickstate => {
@@ -86,24 +128,35 @@ export const isCold = (brick: Brick): brick is Brick<Cold> => {
   return brick.state === "nearby" || brick.state === "frozen";
 };
 
-export const freeze = (brick: Brick) => {
+export const freeze = (
+  game: Game,
+  brick: Brick<Exclude<Brickstate, "spin">>
+) => {
   brick.state = "frozen";
   brick.choose = undefined;
   brick.isSnapped = true;
+  updateAllweb(game, brick as Override<Brick<Cold>>);
 };
 
-export const handleBrick = (game: Game, brick: Brick) => {
+export const handleBrick = (game: Game, brick: Brick, now: number) => {
   const mouse = game.state.handle.mouse;
 
   if (brick.state === "drop" && isPointerUp(mouse)) {
-    brick.state = brick.isSnapped ? "frozen" : "live";
+    if (brick.isSnapped) {
+      freeze(game, brick as Override<any>);
+    } else {
+      brick.state = "live";
+    }
     unchooseBrick(game.state);
   } else if (brick.state === "drag" && isPointerDown(mouse)) {
     brick.state = "drop";
   } else if (brick.state === "spin" && isPointerUp(mouse)) {
     brick.state = "drop";
     brick.farthings = mod(Math.round(brick.farthings), 4);
-  } else if (brick.state === "choose" && isPointerMove(mouse)) {
+  } else if (
+    brick.state === "choose" &&
+    zFarth(mouse.pointer.z, brick.choose!.clickZ) >= Settings.dragBecomesSpin
+  ) {
     brick.state = "spin";
   } else if (brick.state === "choose" && isPointerUp(mouse)) {
     brick.state = "drag";
@@ -115,6 +168,7 @@ export const handleBrick = (game: Game, brick: Brick) => {
   } else if (brick.state === "drag") {
     handleDrag(game, mouse, brick as Override<Brick<"drag">>);
   } else if (
+    isHot(brick) &&
     isMouseInBrick(game, brick) &&
     !game.state.handle.mouse.layer.includes("slab") &&
     (!game.state.chosen || game.state.chosen === brick)
@@ -146,12 +200,12 @@ export const handleBrick = (game: Game, brick: Brick) => {
       unchooseBrick(game.state);
     }
     brick.state = isHot(brick) ? "live" : "frozen";
+    brick.neighbors = makeWayward(() => undefined);
   }
 };
 
 const chooseBrick = (gameState: GameState, brick: Brick) => {
   if (gameState.chosen) {
-    // console.log("already chosen", gameState.chosen);
     return;
   } else {
     Object.assign(gameState, { chosen: popById(gameState, brick.boardId) });
@@ -195,14 +249,18 @@ const handleSpin = <P extends "pointerdown" | "pointermove">(
   if (!isShiftDown(game.state.handle.eater)) {
     if (
       Math.abs(brick.farthings - Math.round(brick.farthings)) <
-      Settings.spinsnapThreshold
+      Settings.neighborThreshold
     ) {
       brick.farthings = Math.round(brick.farthings);
     }
   }
 };
 
-const handleDrag = (game: Game, mouse: Mouse, brick: Brick<Chosen>) => {
+const handleDrag = (
+  game: Game,
+  mouse: Mouse,
+  brick: Brick<Exclude<Chosen, "spin">>
+) => {
   const eye = getEye(game);
   brick.z = canvasToWorld(
     {
@@ -217,9 +275,9 @@ const handleDrag = (game: Game, mouse: Mouse, brick: Brick<Chosen>) => {
   }
 };
 
-const handleDrap = (game: Game, brick: Brick<Chosen>) => {
+const handleDrap = (game: Game, brick: Brick<Exclude<Chosen, "spin">>) => {
   const boardlist = game.state.boardlist;
-  const neighbors: Wayward<Maybe<Brick>> = makeWayward(() => undefined);
+  const neighbors: Wayward<Maybe<NeighborBrick>> = makeWayward(() => undefined);
 
   brick.isSnapped = false;
 
@@ -227,15 +285,15 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     const dz = zTimes(zMinus(brick.z, other.z), 1 / Settings.brickLength);
     if (
       isCold(other) &&
-      ((1 - Settings.dragsnapThreshold < Math.abs(dz.x) &&
-        Math.abs(dz.x) < 1 + Settings.dragsnapThreshold &&
-        Math.abs(dz.y) < Settings.dragsnapThreshold) ||
-        (1 - Settings.dragsnapThreshold < Math.abs(dz.y) &&
-          Math.abs(dz.y) < 1 + Settings.dragsnapThreshold &&
-          Math.abs(dz.x) < Settings.dragsnapThreshold))
+      ((1 - Settings.neighborThreshold < Math.abs(dz.x) &&
+        Math.abs(dz.x) < 1 + Settings.neighborThreshold &&
+        Math.abs(dz.y) < Settings.neighborThreshold) ||
+        (1 - Settings.neighborThreshold < Math.abs(dz.y) &&
+          Math.abs(dz.y) < 1 + Settings.neighborThreshold &&
+          Math.abs(dz.x) < Settings.neighborThreshold))
     ) {
       other.state = "nearby";
-      neighbors[wayTo(brick, other)] = other;
+      neighbors[wayTo(other, brick)] = other;
       if (
         neighbors.east &&
         neighbors.north &&
@@ -256,26 +314,26 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     brick.isSnapped = true;
     if (neighbors.east) {
       brick.z = {
-        x: neighbors.east.z.x + Settings.brickLength,
+        x: neighbors.east.z.x - Settings.brickLength,
         y: neighbors.east.z.y,
         kind: "world",
       };
     } else if (neighbors.north) {
       brick.z = {
         x: neighbors.north.z.x,
-        y: neighbors.north.z.y - Settings.brickLength,
+        y: neighbors.north.z.y + Settings.brickLength,
         kind: "world",
       };
     } else if (neighbors.west) {
       brick.z = {
-        x: neighbors.west.z.x - Settings.brickLength,
+        x: neighbors.west.z.x + Settings.brickLength,
         y: neighbors.west.z.y,
         kind: "world",
       };
     } else if (neighbors.south) {
       brick.z = {
         x: neighbors.south.z.x,
-        y: neighbors.south.z.y + Settings.brickLength,
+        y: neighbors.south.z.y - Settings.brickLength,
         kind: "world",
       };
     } else {
@@ -283,6 +341,18 @@ const handleDrap = (game: Game, brick: Brick<Chosen>) => {
     }
   }
   brick.neighbors = neighbors;
+  if (neighbors.east) {
+    neighbors.east.neighbors.west = brick as Override<any>;
+  }
+  if (neighbors.south) {
+    neighbors.south.neighbors.north = brick as Override<any>;
+  }
+  if (neighbors.west) {
+    neighbors.west.neighbors.east = brick as Override<any>;
+  }
+  if (neighbors.north) {
+    neighbors.north.neighbors.south = brick as Override<any>;
+  }
 };
 
 /**
