@@ -25,7 +25,7 @@ export const makeGameDiv = (gameState: GameState): GameDiv => {
   const boardframeDiv = makeBoardframeDiv(gameState);
   wakeHandle(gameState.handle, boardframeDiv.boardCanvas);
 
-  const slablistSpan = makeSlablistSpan(gameState, Object.values(boardframeDiv.slabs));
+  const slablistSpan = makeSlablistSpan(gameState, boardframeDiv.slabs);
   almostGameDiv.element.append(boardframeDiv.element, slablistSpan.element);
 
   document.body.insertBefore(almostGameDiv.element, document.body.firstChild);

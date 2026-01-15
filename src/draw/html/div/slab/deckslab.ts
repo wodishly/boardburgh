@@ -53,7 +53,7 @@ export const makeDeckslab: HTMLMake<Deckslab> = (gameState) => {
   return { ...deckslab, laveSpan, tallyDiv, dealDiv, dealKnob };
 };
 
-export const makeTallyDiv: HTMLMake<TallyDiv> = (_) => {
+export const makeTallyDiv: HTMLMake<TallyDiv> = () => {
   const tallyDiv = makeWithId("div", "tally" as const);
   return { ...tallyDiv, tallyUls: [] };
 };
@@ -72,7 +72,7 @@ export const updateDeckslabWith = (
 
   tallyDiv.tallyUls = [];
   unchildAll(tallyDiv.element);
-  const warpLength = 6;
+  const warpLength = 8;
 
   for (
     let i = 0;

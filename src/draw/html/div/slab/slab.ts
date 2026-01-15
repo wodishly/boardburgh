@@ -4,15 +4,11 @@ import { type Maybe } from "../../../../help/type";
 import type { GameState } from "../../../../state";
 import type { Mouse } from "../../../handle";
 import { hasElement, hasId, makeWithId, type ElementWithId } from "../../type";
-import { setDisplayToSightly } from "./slablist";
+import { matchSightly } from "./slablist";
 
-export const SlabIdList = [
-  "deckslab",
-  "houseslab",
-  "worthslab",
-  "helpslab",
-] as const;
-export type SlabId = (typeof SlabIdList)[number];
+export const SlabnameList = ["deck", "house", "worth", "help"] as const;
+export type Slabname = (typeof SlabnameList)[number];
+export type SlabId<N extends Slabname = Slabname> = `${N}slab`;
 
 export const isSlabId = (x: string): x is SlabId => {
   return (
@@ -37,15 +33,19 @@ export type Slab<
 export const makeSlab = <I extends SlabId>(
   gameState: GameState,
   name: I,
-  html = "",
-  isSightly = true
+  html = ""
 ): Slab<I> => {
   const div = makeWithId("div", name);
   div.element.classList.add("slab");
   div.element.innerHTML = html;
 
-  const slab = { ...div, startZ: undefined, clickZ: undefined, isSightly };
-  setDisplayToSightly(slab);
+  const slab = {
+    ...div,
+    startZ: undefined,
+    clickZ: undefined,
+    isSightly: true,
+  };
+  matchSightly(slab);
   return slab;
 };
 

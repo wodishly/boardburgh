@@ -185,7 +185,7 @@ div#houseslab div#house {
 }
 
 div#worthslab {
-  bottom: 2rem;
+  bottom: 3rem;
   right: 1rem;
 }
 
@@ -225,6 +225,14 @@ span#slablist a {
 span#slablist a:hover {
   text-decoration: underline;
   cursor: pointer;
+}
+
+span#slablist .unsightly {
+  text-decoration: line-through;
+}
+
+span#slablist .unsightly:hover {
+  text-decoration: line-through underline;
 }
 
 a {

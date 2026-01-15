@@ -4,7 +4,7 @@ import { choose, shuffle } from "../help/reckon";
 import { type Override, type Maybe } from "../help/type";
 import type { GameState } from "../state";
 import { type Brickname, hasShield } from "./brickname";
-import { type Brickshape, edges } from "./brickshape";
+import { type Brickshape, makeEdges } from "./brickshape";
 import { makeWayward } from "../help/way";
 import type { Brick, OnBoard } from "./brickstate";
 
@@ -75,7 +75,7 @@ export const dealBrick = (gameState: GameState, _now: number) => {
 export const makeBrickshape = <N extends Brickname>(brickname: N) => {
   return {
     brickname,
-    edges: edges<N>(brickname),
+    edges: makeEdges<N>(brickname),
     hasShield: hasShield(brickname),
   } as Override<Brickshape<N>>;
 };
