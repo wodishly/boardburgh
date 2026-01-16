@@ -1,9 +1,6 @@
 - board
   - make bricks spawn on deckframe and have two hover states
   - understand why `withBorrowedContext` makes things offset inside the `CanvasDraw` call
-- snap needs to check if there is already a brick there
-- screen translation
-  - zoom
 - meeples
 - other screens / devices
 - web
@@ -14,3 +11,4 @@
   - `Override<any>` :(
   - debug modo state doesnt show `nearby` state
 - swap drag and spin
+- pan drifts

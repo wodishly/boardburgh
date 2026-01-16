@@ -121,6 +121,10 @@ export const mod = (n: number, d: number) => {
   return ((n % d) + d) % d;
 };
 
+export const clamp = (lower: number, upper: number) => (n: number) => {
+  return Math.max(lower, Math.min(upper, n));
+};
+
 export const toXY = <K extends ZKind>(
   greatness: number,
   winkle: number,

@@ -1,5 +1,5 @@
 import type { BoardCanvas } from "../board";
-import { roundTo, zMinus, zPlus, zTimes, type Z } from "../help/reckon";
+import { clamp, roundTo, zMinus, zPlus, zTimes, type Z } from "../help/reckon";
 import { Settings } from "../settings";
 import { type Handle } from "./handle";
 
@@ -37,17 +37,24 @@ export const setEye = (eye: Eye, handle: Handle): Eye => {
   if (handle.mouse.wheel.ctrlKey) {
     eye.zoom.navel = handle.mouse.pointer.z;
     const oldScale = eye.zoom.scale;
-    eye.zoom.scale = Math.max(
-      Settings.zoomStep,
-      eye.zoom.scale - wheelZ.y * Settings.zoomStep
-    );
+    eye.zoom.scale = clamp(
+      Settings.zoom.utleast,
+      Settings.zoom.utmost
+    )(eye.zoom.scale - wheelZ.y * Settings.zoom.step);
     eye.pan = zPlus(
       eye.zoom.navel,
       zTimes(zMinus(eye.pan, eye.zoom.navel), eye.zoom.scale / oldScale)
     );
   } else {
-    eye.pan.x -= wheelZ.x;
-    eye.pan.y -= wheelZ.y;
+    console.log(eye.greatness);
+    eye.pan.x = clamp(
+      eye.zoom.scale * -Settings.pan.utmost,
+      eye.zoom.scale * +Settings.pan.utmost
+    )(eye.pan.x - wheelZ.x);
+    eye.pan.y = clamp(
+      eye.zoom.scale * -Settings.pan.utmost,
+      eye.zoom.scale * +Settings.pan.utmost
+    )(eye.pan.y - wheelZ.y);
   }
   console.log(
     `pan: (${roundTo(eye.pan.x, 2)}, ${roundTo(eye.pan.y, 2)})` +

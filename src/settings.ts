@@ -15,7 +15,14 @@ export const bg = () => {
 export const Settings = {
   brickLength: 128,
   neighborThreshold: 1 / 8,
-  zoomStep: 1 / 512,
+  pan: {
+    utmost: 2<<12,
+  },
+  zoom: {
+    step: 1 / 512,
+    utleast: 1 / 8,
+    utmost: 4,
+  },
   dragBecomesSpin: 24,
   friendTell: 7,
   draw: {
